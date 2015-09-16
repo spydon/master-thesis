@@ -1,0 +1,168 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{fullpage}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage{color}
+\usepackage{authblk}
+\usepackage{todonotes}
+\usepackage{caption}
+\usepackage{url}
+\usepackage{float}
+\usepackage{sectsty}
+\usepackage{pdfpages}
+\usepackage[section]{placeins}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox{gray}{\parbox{\textwidth}{#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+
+\usepackage{setspace}
+\usepackage[toc,page]{appendix}
+\usepackage{framed}
+\usepackage{geometry}
+
+\usepackage{alltt}
+\usepackage{subfig}
+
+% Change section fonts
+\allsectionsfont{\sffamily}
+
+% For code box
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{%
+  \parbox{\textwidth}{\colorbox{gray}{\parbox{\textwidth}{#1#2#3}}\vskip-4pt}}
+  \captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+  \lstset{frame=lrb,xleftmargin=\fboxsep,xrightmargin=-\fboxsep}
+% End code box
+
+\usepackage{cite}
+
+% General parameters, for ALL pages:
+\renewcommand{\topfraction}{0.9}	% max fraction of floats at top
+\renewcommand{\bottomfraction}{0.8}	% max fraction of floats at bottom
+% Parameters for TEXT pages (not float pages):
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4} % 2 may work better
+\setcounter{dbltopnumber}{2} % for 2-column pages
+
+\addtolength{\topmargin}{0.5in}
+
+\usepackage{fancyvrb}
+
+\usepackage{tikz} \usetikzlibrary{trees}
+\usepackage{hyperref} % should always be the last package
+
+% useful colours (use sparingly!):
+\newcommand{\blue}[1]{{\color{blue}#1}}
+\newcommand{\green}[1]{{\color{green}#1}}
+\newcommand{\red}[1]{{\color{red}#1}}
+
+% useful wrappers for algorithmic/Python notation:
+\newcommand{\length}[1]{\text{len}(#1)}
+\newcommand{\twodots}{\mathinner{\ldotp\ldotp}} % taken from clrscode3e.sty
+\newcommand{\Oh}[1]{\mathcal{O}\left(#1\right)}
+
+% useful (wrappers for) math symbols:
+\newcommand{\Cardinality}[1]{\left\lvert#1\right\rvert}
+\newcommand{\Ceiling}[1]{\left\lceil#1\right\rceil}
+\newcommand{\Floor}[1]{\left\lfloor#1\right\rfloor}
+\newcommand{\Iff}{\Leftrightarrow}
+\newcommand{\Implies}{\Rightarrow}
+\newcommand{\Intersect}{\cap}
+\newcommand{\Sequence}[1]{\left[#1\right]}
+\newcommand{\Set}[1]{\left\{#1\right\}}
+\newcommand{\SetComp}[2]{\Set{#1\SuchThat#2}}
+\newcommand{\SuchThat}{\mid}
+\newcommand{\Tuple}[1]{\langle#1\rangle}
+\newcommand{\Union}{\cup}
+\usetikzlibrary{positioning,shapes,shadows,arrows}
+\providecommand{\keywords}[1]{\textbf{\textit{Keywords: }} #1}
+
+\title{\textbf{Specification: Providing Access Control in Content Distribution Networks}}
+\author{Lukas Klingsbo}
+
+\begin{document}
+
+\maketitle
+
+\setcounter{tocdepth}{3}
+\tableofcontents
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\section{Background}
+This work will be done at the company Uprise (Dragarbrunnsgatan 36C, Uppsala). 
+The goal of this project is to explore, and creating, the possibility to have 
+access control in a content distribution network.
+
+\section{Description}
+The project should research and possibly develop a system where it is possible 
+to set different types of access to different files in a CDN. 
+For example, the access control could be divided into three groups:
+\begin{itemize}
+  \item Very secret - Only accessible from white listed IP addresses
+  \item Secret - Only accessible from authenticated users with the correct access
+  \item Public - Accessible by anybody
+\end{itemize}
+
+When a file is set to a belong to one of these groups it should not be static, 
+it should be possible to, at a later stage, assign the file to another group.
+
+\section{Methods}
+\begin{itemize}
+  \item The prototype/system will be developed in Scala. 
+  \item A literature study will be done once the specification is accepted. 
+  \item Results will be evaluated from a security and scalability point of view. 
+  \item A work station and desk space will be provided by Uprise.
+\end{itemize}
+
+\section{Relevant Courses}
+\begin{itemize}
+  \item Computer Networks I (1DT052)
+  \item Computer Networks II (1DT074)
+  \item Distributed Systems (1DT064)
+  \item Secure Computer Systems I (1DT072)
+  \item Secure Computer Systems II (1DT073)
+  \item Process Oriented Programming (1DT083)
+\end{itemize}
+
+\section{Delimitations}
+If the project is easier than expected it could be expanded by looking into 
+automatically doing simpler image analysis to find images that are about to 
+be assigned to the incorrect category, for example a ``Very secret'' image 
+that is about to be published as ``Public''.
+
+It is possible to do delimitation of the core research question as the project 
+proceeds, but it will most likely not be needed as the research question is 
+quite concise.
+
+\section{Time Plan}
+Note that this is just a rough time plan that will change during the course of 
+the project when the circumstances change.
+There will rarely be one task at a time, but rather a lot of the tasks will be 
+overlapping.
+\begin{itemize}
+  \item A few days - Properly setting up the work station
+  \item 2 weeks - Literature study and obtaining relevant books etc
+  \item 20 weeks - Writing the report should be done pretty much 
+  throughout the whole project
+  \item 1 week - Analyze the current system for managing the CDN assets
+  \item 1 week - Analyze what has been done earlier regarding the 
+  subject and determine if anything is useful for this project
+  \item 4 weeks - Implement a prototype
+  \item 1 week - Scalability testing
+  \item 3 weeks - Security testing
+\end{itemize}
+
+\section{References}
+One possibility to develop a solution from:
+
+\url{http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-cookies.html}
+
+\end{document}
