@@ -83,7 +83,7 @@
 \usetikzlibrary{positioning,shapes,shadows,arrows}
 \providecommand{\keywords}[1]{\textbf{\textit{Keywords: }} #1}
 
-\title{\textbf{Specification: Providing Access Control in Content Distribution Networks}}
+\title{\textbf{Specification: Providing an Access Control Layer in Content Distribution Networks}}
 \author{Lukas Klingsbo}
 
 \begin{document}
@@ -99,7 +99,10 @@
 \section{Background}
 This work will be done at the company Uprise (Dragarbrunnsgatan 36C, Uppsala). 
 The goal of this project is to explore, and creating, the possibility to have 
-access control in a content distribution network.
+an local access control layer for files in a content distribution network.
+This will make it easier to have control over the security settings of the 
+projects and will also make it possible to enforce local (as in not on the CDN) 
+auth and audit logging.
 
 \section{Description}
 The project should research and possibly develop a system where it is possible 
@@ -114,9 +117,12 @@ For example, the access control could be divided into three groups:
 When a file is set to a belong to one of these groups it should not be static, 
 it should be possible to, at a later stage, assign the file to another group.
 
+It should also be possible to create so called views and projects which a group 
+of files are added to, which then have their own security settings.
+
 \section{Methods}
 \begin{itemize}
-  \item The prototype/system will be developed in Scala. 
+  \item The prototype/system will be developed in Scala and React. 
   \item A literature study will be done once the specification is accepted. 
   \item Results will be evaluated from a security and scalability point of view. 
   \item A work station and desk space will be provided by Uprise.
@@ -161,7 +167,7 @@ overlapping.
 \end{itemize}
 
 \section{References}
-One possibility to develop a solution from:
+One possibility to connect the backend to:
 
 \url{http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-cookies.html}
 
