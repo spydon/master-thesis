@@ -1,0 +1,6 @@
+Designa mer finmaskig access control på ett grövre lager
+How to handle the security of virtual groups of files
+Lagret ska vara modulärt
+
+Ett nytt sorts lager av säkerhet, en fil kan vara tilldelad flera olika säkerhetsinställningar genom olika vyer
+Designing a Virtual Security Layer for Content Uploads
