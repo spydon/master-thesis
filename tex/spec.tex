@@ -83,7 +83,7 @@
 \usetikzlibrary{positioning,shapes,shadows,arrows}
 \providecommand{\keywords}[1]{\textbf{\textit{Keywords: }} #1}
 
-\title{\textbf{Specification: Providing an Access Control Layer in Content Distribution Networks}}
+\title{\textbf{Specification: Designing a Virtual Security Layer for Cloud Content}}
 \author{Lukas Klingsbo}
 
 \begin{document}
@@ -98,30 +98,69 @@
 \setcounter{page}{1}
 \section{Background}
 This work will be done at the company Uprise (Dragarbrunnsgatan 36C, Uppsala). 
-The goal of this project is to explore, and creating, the possibility to have 
-an local access control layer for files in a content distribution network.
-This will make it easier to have control over the security settings of the 
-projects and will also make it possible to enforce local (as in not on the CDN) 
-auth and audit logging.
+The goal of this project is to design and develop a local access control layer 
+for files, projects and views in a content distribution network.
+This should make handling of content safer and make it easier to have control 
+over the security settings of projects and groups of files and will also make 
+it possible to enforce local (as in not on the CDN) auth and audit logging.
 
 \section{Description}
-The project should research and possibly develop a system where it is possible 
-to set different types of access to different files in a CDN. 
+The project should design and possibly develop a system where it is possible 
+to set different types of access to different clusters of virtual files. 
 For example, the access control could be divided into three groups:
 \begin{itemize}
   \item Very secret - Only accessible from white listed IP addresses
   \item Secret - Only accessible from authenticated users with the correct access
   \item Public - Accessible by anybody
 \end{itemize}
+The security rules put in place should not be hard coded, but possible to update 
+and extend. When a file is set to a belong to one of these groups it should not be static, 
+it should be possible to, at a later stage, assign it to another group.
 
-When a file is set to a belong to one of these groups it should not be static, 
-it should be possible to, at a later stage, assign the file to another group.
+A virtual file, as described in the beginning of the description, is a form of pointer 
+connected to some meta-data that points at an actual file in the filesystem or remote 
+service. One ``physical'' file can be referenced by many virtual files.
 
 It should also be possible to create so called views and projects which a group 
 of files are added to, which then have their own security settings.
+A file can be a part of several views that then in their turn have different 
+security settings. The system should then be able to determine what the correct 
+security setting for the actual file is. 
 
+For example, which security rules should take precedence if a file, lets call it 
+``Test.jpg'', is uploaded to a CDN once, but is contained in two views or projects 
+with different security settings. If then Test.jpg is changed in one of the projects, 
+but is not supposed to be changed in the other, how is that handled and how is 
+it determined when a change should propagate through the whole system or when it 
+should just create a new version of it in the current virtual view or project.
+\vspace{12pt}
+\\
+More things to examine:
+\begin{itemize}
+    \item A way to dynamically switch a single or a group of files security settings has 
+to be examined as the storage method of the files usually will be distributed.
+    \item To make sure you are handling the correct file previews has to be shown in the system.
+    \item Access to the system should be configured in a modular sense, one module could be 
+LDAP.
+\end{itemize}
+
+\begin{figure}[htp] \centering{
+    \includegraphics[scale=0.5]{overview.pdf}}
+    \caption{System Overview}
+    \label{fig:overview}
+\end{figure}
+If looking at Figure~\ref{fig:overview}, the component that this work is supposed to specifically 
+design is the Security Layer in the middle, everything else should be interchangeable. The persistent 
+storage will most likely be a database which keeps track of the files and security settings. 
+The CDN could be any service with a rougher security system which needs to be more 
+fine grained for assets. The LDAP server in the figure can be any form of authentication service so that 
+wont need to be handled in the security layer. The React front-end is for handling files and 
+security settings in the back-end, it should be possible to write any front-end for it.
+
+\newpage
 \section{Methods}
 \begin{itemize}
+  \item The design will be well evaluated in the sense of security and technical usability.
   \item The prototype/system will be developed in Scala and React. 
   \item A literature study will be done once the specification is accepted. 
   \item Results will be evaluated from a security and scalability point of view. 
@@ -148,6 +187,7 @@ It is possible to do delimitation of the core research question as the project
 proceeds, but it will most likely not be needed as the research question is 
 quite concise.
 
+\newpage
 \section{Time Plan}
 Note that this is just a rough time plan that will change during the course of 
 the project when the circumstances change.
@@ -167,7 +207,7 @@ overlapping.
 \end{itemize}
 
 \section{References}
-One possibility to connect the backend to:
+    One possibility to connect the security layer to:
 
 \url{http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-cookies.html}
 
