@@ -99,9 +99,9 @@
 \section{Background}
 This work will be done at the company Uprise (Dragarbrunnsgatan 36C, Uppsala). 
 The goal of this project is to design and develop a local access control layer 
-for files, projects and views in a content distribution network.
+for files and views in a content distribution network.
 This should make handling of content safer and make it easier to have control 
-over the security settings of projects and groups of files and will also make 
+over the security settings of groups of files and will also make 
 it possible to enforce local (as in not on the CDN) auth and audit logging.
 
 \section{Description}
@@ -121,18 +121,21 @@ A virtual file, as described in the beginning of the description, is a form of p
 connected to some meta-data that points at an actual file in the filesystem or remote 
 service. One ``physical'' file can be referenced by many virtual files.
 
-It should also be possible to create so called views and projects which a group 
+It should also be possible to create so called views which a group 
 of files are added to, which then have their own security settings.
+A view is a subset of files, and a view can be a view of another view and then 
+only contain files which is in contained in the parent view. 
 A file can be a part of several views that then in their turn have different 
 security settings. The system should then be able to determine what the correct 
-security setting for the actual file is. 
+security setting for the actual file is or if it needs to create several versions 
+of the file. 
 
 For example, which security rules should take precedence if a file, lets call it 
-``Test.jpg'', is uploaded to a CDN once, but is contained in two views or projects 
-with different security settings. If then Test.jpg is changed in one of the projects, 
+``Test.jpg'', is uploaded to a CDN once, but is contained in two views 
+with different security settings. If then Test.jpg is changed in one of the views, 
 but is not supposed to be changed in the other, how is that handled and how is 
 it determined when a change should propagate through the whole system or when it 
-should just create a new version of it in the current virtual view or project.
+should just create a new version of it in the current virtual view.
 \vspace{12pt}
 \\
 More things to examine:
@@ -160,11 +163,17 @@ security settings in the back-end, it should be possible to write any front-end 
 \newpage
 \section{Methods}
 \begin{itemize}
-  \item The design will be well evaluated in the sense of security and technical usability.
-  \item The prototype/system will be developed in Scala and React. 
-  \item A literature study will be done once the specification is accepted. 
-  \item Results will be evaluated from a security and scalability point of view. 
-  \item A work station and desk space will be provided by Uprise.
+  \item The design will be well evaluated in the sense of security and technical usability
+  \item The prototype/system will be developed in Scala and React
+  \item A literature study will be done to find more relevant litterature once the specification is accepted 
+  \item The proof should be an informal paper proof or if time is sufficient a proper proof should be done in a model checker
+  \item Results from the informal proof will be evaluated and documented
+  \item The implementation will be evaluated with existing security tools, it needs to be researched which these tools will be
+      \item Results from these tools and that are relevant to the report will be added in an appendix
+  \item Everything relevant in the work process, from problems that occured to final results, will be documented in the report
+  \item The code will have its own documentation separated from the report 
+  \item The prototype/system will be released under an open source license
+  \item A work station and desk space will be provided by Uprise
 \end{itemize}
 
 \section{Relevant Courses}
@@ -186,7 +195,6 @@ that is about to be published as ``Public''.
 It is possible to do delimitation of the core research question as the project 
 proceeds, but it will most likely not be needed as the research question is 
 quite concise.
-
 \newpage
 \section{Time Plan}
 Note that this is just a rough time plan that will change during the course of 
@@ -201,14 +209,28 @@ overlapping.
   \item 1 week - Analyze the current system for managing the CDN assets
   \item 1 week - Analyze what has been done earlier regarding the 
   subject and determine if anything is useful for this project
-  \item 4 weeks - Implement a prototype
-  \item 1 week - Scalability testing
-  \item 3 weeks - Security testing
+  \item 3 weeks - Define system mechanism and model
+  \item 3 weeks - Analyse system mechanism and model (this item will overlap with the definition)
+  \item 3 weeks - Informal proof (or formal if time is sufficient) of the systems mechanism and model
+  \item 8 weeks - Implement a prototype/system
+      \subitem 1 week - defining and developing backend API
+      \subitem 2 weeks - define a basic set of extendable security rules
+      \subitem <1 week - investigate and implement "physical" file handler
+      \subitem <1 week - implement simple persistant storage for meta data
+      \subitem 1-2 weeks - implement authentication interface
+      \subitem <1 week - implement CDN interface
+      \subitem 2 weeks - implement user interface
+  \item 1 weeks - Test security of implementation, if only a prototype is developed the security should only be analysed in theory
 \end{itemize}
+
+The interfaces does not have to have anything real connected to them, it just needs 
+to be possible to hook up services to them.
+
+
 
 \section{References}
     One possibility to connect the security layer to:
 
 \url{http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-cookies.html}
 
-\end{document}
+    \end{document}

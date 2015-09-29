@@ -83,7 +83,7 @@
 \usetikzlibrary{positioning,shapes,shadows,arrows}
 \providecommand{\keywords}[1]{\textbf{\textit{Keywords: }} #1}
 
-\title{\textbf{Providing an Access Control Layer for Content Distribution Networks}}
+\title{\textbf{Designing a Virtual Security Layer for Cloud Content}}
 \author{Lukas Klingsbo}
 
 \begin{document}
@@ -135,7 +135,7 @@ difference between the virtual DOMs~\cite{REACT}.
 Scala is a multi-paradigm programming language. It most commonly runs on the JVM and compared to Java it supports 
 most functional programming features at the same time as it supports object oriented programming~\cite{SCALA}.
 
-\subsubsection{JSON-RPC}
+\subsubsection{REST}
 Over http? WebSockets? 
 \subsubsection{TODO: Insert persistent storage here}
     TODO: Write down related terminology, if any
@@ -144,6 +144,16 @@ Over http? WebSockets?
 \subsubsection{CDN}
 Content Distribution Network - Replicates content to several servers, usually spread out geographically. Once a 
 request is made, the network serves content from the server closest to the requester.
+
+\section{Related Work}
+\subsection{Copy-on-Write}
+This work relies heavily on the Copy-on-Write principle which was founded and used in the Mach kernel~\cite{COPYONWRITE}. 
+Today Copy-on-Write is used in everything from file systems~\cite{BTRFS} to desktop compositors~\cite{COMPOSITOR}.
+
+Its principle is that when processes share data in between each other, the data is not copied until one of the processes 
+does changes to it. This is an optimisation as the processes does not have to send all of the related data that is in memory, 
+rather they only have to send pointers to the data. After many Copy-on-Write's a complex structure can be built up, 
+but it is possible to solve that structure~\cite{COPYONWRITE2}.
 
 \section{Background}
 \subsection{About Uprise}
@@ -166,8 +176,42 @@ What is needed
 * Auth and audit logs
 * Users
 
+\section{Model}
+\subsection{Entities}
+%\subsubsection*{View} for not having section numbers
+\begin{figure}[htp] \centering{
+    \includegraphics[scale=0.8]{relation.pdf}}
+    \caption{Entity Relationships}
+    \label{fig:relation}
+\end{figure}
+
+\subsubsection{View}
+A view is a group of files which can be changed independently of the view's parent.
+A view can have subviews which are either automatically dependant on its parent and 
+updated when the parent is updated or optionally updated or forked from its parent 
+once their content diverge.
+
+\subsubsection{Project}
+A project is just a name for the view which is a root of a tree of views.
+The system can contain several projects and their trees are completely disjoint.
+
+\subsubsection{File}
+A file refers to an actual physical file in the file system.
+
+\subsubsection{Content}
+Content is an asset contained in a view, it is a virtual file.
+It could be described as a link between the view and the real file. 
+It can be for example an image, video or binary blob combined with meta-data.
+
+\subsubsection{User}
+A user is the structure that handles people who has been granted access to the system.
+Access to the system is handled by a separate service, like LDAP.
+
+\section{Copy-on-Write}
+
 \section{Methods for determining\\implementation details}
-This chapter introduces the different methods used to determine how the new system should be implemented, which DBMS it should use and how the estimation of long term scaling was done.
+This chapter introduces the different methods used to determine how the new system should be implemented, 
+which DBMS it should use and how the estimation of long term scaling was done.
 
 \section{Security of the system}
 \subsection{Authorization}
@@ -175,6 +219,41 @@ This chapter introduces the different methods used to determine how the new syst
 
 
 \section{Resulting system}
+\subsection{REST Endpoints}
+For the frontend to communicate with the backend REST is used, the following endpoints were configured:
+
+\begin{itemize}
+  \item projects
+      \subitem GET - list all projects
+      \subitem POST - create new project
+  \item projects/\{id\}
+      \subitem GET - get specific project
+      \subitem PUT - update existing project
+      \subitem DELETE - delete existing project
+  \item projects/\{id\}/content
+      \subitem GET - list all content in a specific project
+      \subitem POST - create new content in a specific project 
+  \item projects/\{id\}/content/\{id\}
+      \subitem GET - get specific content in a specific project
+      \subitem PUT - update existing content in a specific project
+      \subitem DELETE - delete existing content in a specific project
+
+  \item projects/\{id\}/views
+      \subitem GET - list all views in a specific project
+      \subitem POST - create new view in a specific project 
+  \item projects/\{id\}/views/\{id\}
+      \subitem GET - get specific view in a specific project
+      \subitem PUT - update existing view
+      \subitem DELETE - delete existing view
+  \item projects/\{id\}/views/\{id\}/content
+      \subitem GET - list all content in a specific view
+      \subitem POST - create new content in a specific view 
+  \item projects/\{id\}/views/\{id\}/content/\{id\}
+      \subitem GET - get specific content in a specific view
+      \subitem PUT - update existing content in a specific view
+      \subitem DELETE - delete existing content in a specific view
+\end{itemize}
+
 \subsection{Scalability}
 
 \section{Discussion}
