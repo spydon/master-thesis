@@ -175,8 +175,9 @@ What is needed
 * Multi project support
 * Auth and audit logs
 * Users
-
+\newpage 
 \section{Model}
+\newpage 
 \subsection{Entities}
 %\subsubsection*{View} for not having section numbers
 \begin{figure}[htp] \centering{
@@ -185,28 +186,32 @@ What is needed
     \label{fig:relation}
 \end{figure}
 
-\subsubsection{View}
-A view is a group of files which can be changed independently of the view's parent.
-A view can have subviews which are either automatically dependant on its parent and 
-updated when the parent is updated or optionally updated or forked from its parent 
-once their content diverge.
+\subsubsection{Content}
+Content is an asset contained in a project and/or view, it is a form of virtual file.
+It could be described as a link between the view or project and the real file. 
+    The content can be for example an image, video or binary blob, combined with meta-data.
 
 \subsubsection{Project}
-A project is just a name for the view which is a root of a tree of views.
-The system can contain several projects and their trees are completely disjoint.
+A project is what is created to contain all content related to a real project. Files can be changed within a project and 
+the system can contain several projects and their virtual content are completely disjoint.
+
+\subsubsection{View}
+A view is a subset of content, in a project, from the state which they were in when the view was created. A project can 
+contain many views. A view can have content which either is automatically dependant on its parent project and updated 
+when the parent is updated or stay in the state which it was in when the view was created. This results in that the content 
+within a view can not be updated independently from its project.
+
+\subsubsection{Folder}
+A folder is a virtual folder within the projects which contains content.
 
 \subsubsection{File}
 A file refers to an actual physical file in the file system.
 
-\subsubsection{Content}
-Content is an asset contained in a view, it is a virtual file.
-It could be described as a link between the view and the real file. 
-It can be for example an image, video or binary blob combined with meta-data.
-
 \subsubsection{User}
-A user is the structure that handles people who has been granted access to the system.
+A user is the structure that handles people who have been granted access to the system.
 Access to the system is handled by a separate service, like LDAP.
 
+\newpage 
 \section{Copy-on-Write}
 
 \section{Methods for determining\\implementation details}
@@ -219,7 +224,14 @@ which DBMS it should use and how the estimation of long term scaling was done.
 
 
 \section{Resulting system}
-\subsection{REST Endpoints}
+\subsection{Persistent storage}
+\subsubsection{MongoDB}
+
+\subsection{API}
+REST was chosen as the BSON format which is used in MongoDB is almost identical ~\cite{BSON} to the standardised JSON 
+format which is used by RESTful services~\cite{JSON}. 
+
+\subsubsection{REST Endpoints}
 For the frontend to communicate with the backend REST is used, the following endpoints were configured:
 
 \begin{itemize}
@@ -252,6 +264,21 @@ For the frontend to communicate with the backend REST is used, the following end
       \subitem GET - get specific content in a specific view
       \subitem PUT - update existing content in a specific view
       \subitem DELETE - delete existing content in a specific view
+
+  \item projects/\{id\}/folders
+      \subitem GET - list all folders in a specific project
+      \subitem POST - create new folder in a specific project 
+  \item projects/\{id\}/folder/\{id\}
+      \subitem GET - get specific folder in a specific project
+      \subitem PUT - update existing folder
+      \subitem DELETE - delete existing folder
+  \item projects/\{id\}/folder/\{id\}/content
+      \subitem GET - list all content in a specific folder
+      \subitem POST - create new content in a specific folder 
+  \item projects/\{id\}/folder/\{id\}/content/\{id\}
+      \subitem GET - get specific content in a specific folder
+      \subitem PUT - update existing content in a specific folder
+      \subitem DELETE - delete existing content in a specific folder
 \end{itemize}
 
 \subsection{Scalability}
