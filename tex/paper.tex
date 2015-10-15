@@ -116,7 +116,7 @@ Developing larger projects containing static content usually involves using a Co
 to be able to scale to a large user base. The commercial Content Distribution Networks are usually fairly easy to use, 
 the content that is to be used in a project is usually simply uploaded and then directly available to the public. 
 For secret content this can be a problem and that is what this thesis is about. This work examines ways of enforcing 
-access control on content and groups of content in the form of views. A system was developed to make the underlying 
+access control on content and groups of content in the form of snapshots. A system was developed to make the underlying 
 theory work in practice. 
 
 \newpage
@@ -146,7 +146,7 @@ people contribute to the project. JPF is usually used for doing model checking o
 for example race conditions and dead locks.
 
 \subsubsection{CDN}
-Content Distribution Network - Replicates content to several servers, usually spread out geographically. Once a 
+Content Distribution/Delivery Network - Replicates content to several servers, usually spread out geographically. Once a 
 request is made, the network serves content from the server closest to the requester.
 
 \section{Related Work}
@@ -169,16 +169,28 @@ but it is possible to solve that structure~\cite{COPYONWRITE2}.
 Uprise is a company based in Uppsala, Sweden. 
 
 \subsection{The current system}
-Maybe write about battlebinary?  
+Today a system called battlebinary~\cite{BATTLEBINARY} is used for managing and uploading files, mostly images, to content 
+delivery networks. The current system does not make use out of the security features that the CDN's are offering, instead it 
+uses a form of security by obscurity. When a file is uploaded to a CDN it is open for the public, but its filename is 
+composed out of its original filename concatenated with a part of the MD5 hash of the content of the file, which makes it an 
+extremely hard process to access the file on the CDN without access to the original file or a reference to the URI.
+
+In the current system you can only upload a file once as there will be a collision in the upload otherwise, as the old and 
+the new file will have the same MD5 hash.  
 
 \subsection{Problem description}
-Having
-  
+As the current system does not offer proper security measurements, is lacking a lot of features that is needed and does not 
+scale very well, a new system should be developed. This work is about examining a way of implementing Copy-on-Write in a 
+high level system, which should solve the scalability problem and makes it possible to implement the wanted features, like 
+snapshots and concurrent modifications of content.
+
+What to write about
 Battle Binary
+Security features of CDN's
 
 What is needed
 * Security layers
-* Views
+* snapshots
 * Virtual file structure
 * Versioning of content
 * Multi project support
@@ -187,7 +199,7 @@ What is needed
 \newpage 
 \section{Model}
 \subsection{Entities}
-%\subsubsection*{View} for not having section numbers
+%\subsubsection*{snapshot} for not having section numbers
 \begin{figure}[htp] \centering{
     \includegraphics[scale=0.8]{relation.pdf}}
     \caption{Entity Relationships}
@@ -195,22 +207,22 @@ What is needed
 \end{figure}
 
 \subsubsection{Content}
-Content is an asset contained in a project and/or view, it is a form of virtual file.
-It could be described as a link between the view or project and the real file. 
-    The content can be for example an image, video or binary blob, combined with meta-data.
+Content is an asset contained in a project and/or snapshot, it is a form of virtual file.
+It could be described as a link between the snapshot or project and the real file. 
+The content can be for example an image, video or binary blob, combined with meta-data.
 
 \subsubsection{Project}
 A project is what is created to contain all content related to a real project. Files can be changed within a project and 
 the system can contain several projects and their virtual content are completely disjoint.
+snapshot
+\subsubsection{Snapshot}
+A snapshot is a read-only container from the state which the container the was in when the snapshot was created. A snapshot can 
+have content which either is automatically dependant on the container which it was created from and updated when that container 
+is updated or stay in the state which it was in when the snapshot was created. This results in that the content within a snapshot 
+can not be updated independently from the container which it was created from.
 
-\subsubsection{View}
-A view is a subset of content, in a project, from the state which they were in when the view was created. A project can 
-contain many views. A view can have content which either is automatically dependant on its parent project and updated 
-when the parent is updated or stay in the state which it was in when the view was created. This results in that the content 
-within a view can not be updated independently from its project.
-
-\subsubsection{Folder}
-A folder is a virtual folder within the projects which contains content.
+\subsubsection{Container}
+A container is a virtual folder within the projects which contains content and other containers.
 
 \subsubsection{File}
 A file refers to an actual physical file in the file system.
@@ -222,13 +234,15 @@ Access to the system is handled by a separate service, like LDAP.
 \subsection{JPF}
 Java path finder was used to show that the model and plan of how to build the system was sound. The model was built in Java 
 with the objective of being as reduced and simple as possible, without loosing any of the cases that needs to be covered 
-by the model checker.
+by the model checker. As the users are mainly going to be handled by external systems they were not included in the model.
 
 Each collection in the persistent storage was emulated by using the built-in ConcurrentHashMap type. 
 Each client was represented by a thread and each action taken by the client was randomised. The id hashes which MongoDB is 
 using for each entity was imported from the mongo-java-driver-2.13.3 and each object had its own id, generated in the same 
 fashion as the real implementation is using, randomly generated by the ObjectId class to minimise collisions that is. 
 Further more no locking or transactions were used and the threads were running fully concurrently, without any sleep statements. 
+
+ConcurrentHashMap had to be used in favour of the normal HashMap as the normal HashMaps can't be iterated over concurrently.
 
 JPF checked each permutation of states that the threads can end up in, the result of the run can be seen in Listing~\ref{JPFRESULT}.
 
@@ -305,35 +319,35 @@ For the frontend to communicate with the backend REST is used, the following end
       \subitem PUT - update existing content in a specific project
       \subitem DELETE - delete existing content in a specific project
 
-  \item projects/\{id\}/views
-      \subitem GET - list all views in a specific project
-      \subitem POST - create new view in a specific project 
-  \item projects/\{id\}/views/\{id\}
-      \subitem GET - get specific view in a specific project
-      \subitem PUT - update existing view
-      \subitem DELETE - delete existing view
-  \item projects/\{id\}/views/\{id\}/content
-      \subitem GET - list all content in a specific view
-      \subitem POST - create new content in a specific view 
-  \item projects/\{id\}/views/\{id\}/content/\{id\}
-      \subitem GET - get specific content in a specific view
-      \subitem PUT - update existing content in a specific view
-      \subitem DELETE - delete existing content in a specific view
+  \item projects/\{id\}/snapshots
+      \subitem GET - list all snapshots in a specific project
+      \subitem POST - create new snapshot in a specific project 
+  \item projects/\{id\}/snapshots/\{id\}
+      \subitem GET - get specific snapshot in a specific project
+      \subitem PUT - update existing snapshot
+      \subitem DELETE - delete existing snapshot
+  \item projects/\{id\}/snapshots/\{id\}/content
+      \subitem GET - list all content in a specific snapshot
+      \subitem POST - create new content in a specific snapshot 
+  \item projects/\{id\}/snapshots/\{id\}/content/\{id\}
+      \subitem GET - get specific content in a specific snapshot
+      \subitem PUT - update existing content in a specific snapshot
+      \subitem DELETE - delete existing content in a specific snapshot
 
-  \item projects/\{id\}/folders
-      \subitem GET - list all folders in a specific project
-      \subitem POST - create new folder in a specific project 
-  \item projects/\{id\}/folder/\{id\}
-      \subitem GET - get specific folder in a specific project
-      \subitem PUT - update existing folder
-      \subitem DELETE - delete existing folder
-  \item projects/\{id\}/folder/\{id\}/content
-      \subitem GET - list all content in a specific folder
-      \subitem POST - create new content in a specific folder 
-  \item projects/\{id\}/folder/\{id\}/content/\{id\}
-      \subitem GET - get specific content in a specific folder
-      \subitem PUT - update existing content in a specific folder
-      \subitem DELETE - delete existing content in a specific folder
+  \item projects/\{id\}/containers
+      \subitem GET - list all containers in a specific project
+      \subitem POST - create new container in a specific project 
+  \item projects/\{id\}/containers/\{id\}
+      \subitem GET - get specific container in a specific project
+      \subitem PUT - update existing container
+      \subitem DELETE - delete existing container
+  \item projects/\{id\}/containers/\{id\}/content
+      \subitem GET - list all content in a specific container
+      \subitem POST - create new content in a specific container 
+  \item projects/\{id\}/containers/\{id\}/content/\{id\}
+      \subitem GET - get specific content in a specific container
+      \subitem PUT - update existing content in a specific container
+      \subitem DELETE - delete existing content in a specific container
 \end{itemize}
 
 \subsection{Scalability}
