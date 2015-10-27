@@ -1,0 +1,236 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% Uppsala Beamer theme example by Frédéric Haziza <daz@it.uu.se>
+%%
+%% Describing beamerthemeUppsala version 2008/05/15
+%%
+%% If you have more than three sections or more than three subsections in at least
+%% one section, you might want to use the [hideallsubsections] or
+%% [hideothersubsections] switch.  In this case, only the current (sub-) section is
+%% displayed in the sidebar and not the full overview.
+%%
+%% Options are:
+%% ===========
+%% * hideallsubsections, hideothersubsections
+%% * nonumbers,totalnumber
+%% * withnav, mylogo
+%% * grey
+%% * noprogressbar
+%%
+%% For the sidebar layout:
+%% * subsectionsattop, sectionpathattop
+%% 
+%% Removed
+%% =======
+%% * sidebarshades
+%%
+%% Tip
+%% ===
+%% latex this file to see the theme in action
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{beamer}
+%\documentclass[handout]{beamer}
+%\documentclass[notes]{beamer}
+%\documentclass[trans]{beamer}
+
+\usetheme[hideothersubsections]{Uppsala}
+
+\usepackage{hyperref}
+\usepackage{pgf}
+\usepackage{tikz}
+\usepgflibrary{arrows}
+\usepgflibrary{shapes}
+\usepackage{array} % needed for \arraybackslash
+\usepackage{graphicx}
+\usepackage{adjustbox} % for \adjincludegraphics
+\usetikzlibrary{%
+  arrows,%
+  calc,%
+  fit,%
+  patterns,%
+  plotmarks,%
+  shapes.geometric,%
+  shapes.misc,%
+  shapes.symbols,%
+  shapes.arrows,%
+  shapes.callouts,%
+  shapes.multipart,%
+  shapes.gates.logic.US,%
+  shapes.gates.logic.IEC,%
+  er,%
+  automata,%
+  backgrounds,%
+  chains,%
+  topaths,%
+  trees,%
+  petri,%
+  mindmap,%
+  matrix,%
+  calendar,%
+  folding,%
+  fadings,%
+  through,%
+  positioning,%
+  scopes,%
+  decorations.fractals,%
+  decorations.shapes,%
+  decorations.text,%
+  decorations.pathmorphing,%
+  decorations.pathreplacing,%
+  decorations.footprints,%
+  decorations.markings,%
+  shadows}
+
+\usepackage[english]{babel} % or whatever
+\usepackage[utf8]{inputenc} % or whatever
+
+\usepackage{mathptmx}
+\usepackage{helvet}
+%\usepackage{courier}
+
+\usepackage[T1]{fontenc}
+% Or whatever. Note that the encoding and the font should match. If T1
+% does not look nice, try deleting the line with the fontenc.
+
+%% -----------------------------------------------------------
+%% MISC. INFORMATION
+%% -----------------------------------------------------------
+
+\title{Designing a Virtual Security Layer for Cloud Content}
+\subtitle{Researching Copy-on-Write solutions}
+
+\author[Lukas Klingsbo | \emph{lukl8671@student.uu.se}] % appears in the footline
+{Lukas Klingsbo <\texttt{lukl8671@student.uu.se}>}
+
+\institute[Dept.\ of Information Technology]% appears in the footline
+{Department of Information Technology\\Uppsala University}
+
+\date[]
+{\today}
+
+%% \logo{...}
+
+%% This is only inserted into the PDF information catalog. Can be left out.
+\subject{NoSQL: Moving from MapReduce Batch Jobs to Event-Driven Data Collection}
+
+%% -----------------------------------------------------------
+%% Extra ``local'' settings
+%% -----------------------------------------------------------
+
+% Comment out this, if you do not want the table of contents to pop up at
+% the beginning of each (sub)section:
+%%\AtBeginSection[]
+%%{
+%%  \begin{frame}<beamer> % with <beamer> => doesn't appear in handout mode
+%%    \frametitle{Outline} %% Put the title you want, or none!
+%%    %\tableofcontents[currentsection,currentsubsection]
+%%    \tableofcontents[currentsection]
+%%  \end{frame}
+%%}
+
+%% Unfolds piecewise element with shading.
+%% Text appears, shaded, and the audience knows that somehting is coming
+%% Note: if you set the number too high, the audience will try to read the 
+%% text that now shows up more, and will be disturbed.
+%% ``dynamic'' makes elements show gradually more and more.
+\setbeamercovered{transparent=5}
+%% \setbeamercovered{dynamic=5}
+
+%% -----------------------------------------------------------
+
+\begin{document}
+
+\begin{frame}[plain] %% Gets the frame to fill up the page, no menu/sidebar/footline
+  \titlepage
+\end{frame}
+
+\begin{frame}
+    \frametitle{Outline}
+    \setcounter{tocdepth}{2}
+    \tableofcontents[]
+\end{frame}
+
+\section{Background}
+
+\subsection{Uprise}
+\begin{frame}
+  \frametitle{\adjincludegraphics[width=0.2\linewidth,valign=t]{uprise}}
+  \centerline{\adjincludegraphics[width=0.2\linewidth,valign=t]{ea}}
+  \vspace{30pt}
+  \centerline{\adjincludegraphics[width=0.2\linewidth,valign=T]{dice}}
+  \vspace{10pt}
+  \centerline{\adjincludegraphics[width=0.1\linewidth,valign=T]{visceral}}
+  \vspace{10pt}
+  \centerline{\adjincludegraphics[width=0.2\linewidth,valign=T]{ghost}}
+\end{frame}
+
+\subsection{Current system}
+\begin{frame}
+  \frametitle{Current system}
+  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{cdn}}
+\end{frame}
+
+\subsection{Problem}
+\begin{frame}
+  \frametitle{Problem}
+  \begin{itemize}
+    \item{Insecure}
+    \pause
+    \item{Impractical}
+    \pause
+    \item{Wont scale}
+  \end{itemize}
+\end{frame}
+
+\subsection{Related Work}
+\begin{frame}
+  \frametitle{Related Work}
+  \begin{itemize}
+    \item{Mach kernel}
+    \pause
+    \item{Btrfs}
+    \pause
+    \item{Programming Languages}
+  \end{itemize}
+\end{frame}
+
+\subsection{Solutions Idea}
+\begin{frame}
+  \frametitle{Solutions Idea}
+  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{cdn}}
+\end{frame}
+\begin{frame}
+  \frametitle{Example Operation}
+  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{tree}}
+  \vspace{20pt}
+  \centerline{\tiny{BTRFS: The Linux B-Tree Filesystem, O. Rodeh et al}}
+\end{frame}
+
+\section{What has been done}
+\begin{frame}
+  \frametitle{What has been done}
+  \begin{itemize}
+    \item{Researching Copy-on-Write implementation}
+    \pause
+    \item{Model checking implementation idea in JPF}
+    \pause
+    \item{Implementing the fundamental back-end parts}
+  \end{itemize}
+\end{frame}
+
+\section{How to proceed}
+
+\begin{frame}
+  \frametitle{How to proceed}
+  \begin{itemize}
+    \item{Comparing Copy-on-Write implementation}
+    \pause
+    \item{}
+    \pause
+    \item{Fully implement and test the system}
+  \end{itemize}
+\end{frame}
+
+\end{document}
