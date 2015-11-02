@@ -1,0 +1,27 @@
+Logo slide
+EA studio, Uppsala
+Game Experience, Battlefield, mirrors edge and Star wars battlefront
+
+Does anyone know what this picture shows?
+
+Normal CDN
+Hashes, no grouping of files, accessible for anybody with link
+
+B-tree
+Copy-on-Write
+Snapshots
+
+Solution
+Built in security features of CDNs
+Organize content, to automatically fix security for groups of files
+Tree of containers, leafs content
+Snapshots, which come for free
+
+
+
+Research questions
+How to use Copy-on-Write with a flat structured persistent storage
+Comparison of lazy snaphots in both low- and high level systems
+
+
+
