@@ -53,9 +53,44 @@
 \addtolength{\topmargin}{0.5in}
 
 \usepackage{fancyvrb}
+\usepackage{titlesec}
+
 
 \usepackage{tikz} \usetikzlibrary{trees}
 \usepackage{hyperref} % should always be the last package
+
+% subsubsubsection
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
+
+\titleformat{\subsubsubsection}
+{\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+    {3.25ex \@plus1ex \@minus.2ex}%
+    {-1em}%
+{\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+    {3.25ex \@plus1ex \@minus .2ex}%
+    {-1em}%
+{\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
 
 % useful colours (use sparingly!):
 \newcommand{\blue}[1]{{\color{blue}#1}}
@@ -193,31 +228,6 @@ scale very well, a new system should be developed. This work is about examining 
 high level system like this, which should solve the scalability problem and make it possible to implement wanted features
 like snapshots, cloning and concurrent modifications of content.
 
-%What to write about
-%Battle Binary
-%Security features of CDN's
-%What is needed by the logic, like what happens after two consecutive deletes
-%
-%What is needed
-%* Security layers
-%* snapshots
-%* Virtual file structure
-%* Versioning of content
-%* Multi project support
-%* Auth and audit logs
-%* Users
-
-%Stuff to write about:
-%Modular design, every piece should be interchangeable
-%LDAP - why it was used as standard AUTH
-
-%Using copy-on-write as the sole update strategy has pros and cons. The upside is
-%that it is simple to guarantee operation atomicity, and data-structure integrity. The
-%downside is that performance relies on the ability to maintain large extents of free
-%contiguous disk areas. In addition, random updates to a f i le tend to fragment it,
-%destroying sequentiality. A good defragmentation algorithm is required; this is
-%described in Section 5
-
 \newpage 
 \section{Model}
 \subsection{Entities}
@@ -323,8 +333,8 @@ copy operations could be done and so that tasks could share read-write memory~\c
 
 
 TODO: Insert more systems here
-
-\subsubsection{Perius}
+\section{Implementation}
+\subsection{Perius}
 Perius is the implementation that was done to solve the problem at hand at Uprise. This implementation is far from as 
 efficient as the others in most aspects, but more efficient in some. As the implementation is built upon MongoDB as 
 persistent storage and not a pure tree structure, single nodes can be fetched in O(1) but when querying for subtrees 
@@ -337,20 +347,13 @@ collisions occur, due to the non-blocking nature of the application. Instead thi
 the meta-data of the tree, but still refers to the same binary files until they are changed, which results in the 
 creation of a new node.
 
-
-
-\section{Methods for determining\\implementation details}
+\subsection{Methods for determining\\implementation details}
 This chapter introduces the different methods used to determine how the new system should be implemented, 
 which DBMS it should use and how the estimation of long term scaling was done.
 
-\section{Security of the system}
-\subsection{Authorization}
-\subsection{Audit logs}
-
-
-\section{Resulting system}
-\subsection{Persistent storage}
-\subsubsection{MongoDB}
+\subsection{Resulting system}
+\subsubsection{Persistent storage}
+\subsubsubsection{MongoDB}
 MongoDB was chosen as the persistent storage because of its quick lookups and because of its internal storage 
 format called BSON, which is very similar to JSON which the API is using. As the formats are similar, the process of 
 marshalling and unmarshalling becomes quite easy between the core code, MongoDB instance and REST interface. 
@@ -358,7 +361,7 @@ The second reason was that if the system needs to scale in the future it is very
 needed the system can easily be migrated to Reactive Mongo, which is an asynchronous and 
 non-blocking driver for MongoDB and can therefore make the system scale even further~\cite{REACTIVEMONGO}.
 
-\subsection{API}
+\subsubsubsection{API}
 REST was chosen as only basic CRUD operations needs to be performed and because the BSON format which is used in 
 MongoDB is almost identical ~\cite{BSON} to the standardised JSON format which is used by RESTful services~\cite{JSON}. 
 
@@ -402,7 +405,13 @@ As can be seen several expected endpoints are missing, this is intentional as th
 a more efficient way. Such endpoint is for example $GET projects/\{id\}/containers$ as all containers exist in 
 $GET projects/\{id\}$ and the interface should present a file structure where both content and containers are shown.
 
-\subsection{Scalability}
+\subsection{Findings}
+\subsubsection{Scalability}
+
+\subsubsection{Security of the system}
+\paragraph{Authorization}
+\paragraph{Audit logs}
+
 
 \section{Discussion}
 
@@ -411,13 +420,35 @@ $GET projects/\{id\}$ and the interface should present a file structure where bo
 
 \subsection{Future work}
 
-
-
-
-
-
 \newpage
 \bibliographystyle{ieeetr}
 \bibliography{references}
 
 \end{document}
+
+
+%What to write about
+%Battle Binary
+%Security features of CDN's
+%What is needed by the logic, like what happens after two consecutive deletes
+%
+%What is needed
+%* Security layers
+%* snapshots
+%* Virtual file structure
+%* Versioning of content
+%* Multi project support
+%* Auth and audit logs
+%* Users
+
+%Stuff to write about:
+%Modular design, every piece should be interchangeable
+%LDAP - why it was used as standard AUTH
+
+%Using copy-on-write as the sole update strategy has pros and cons. The upside is
+%that it is simple to guarantee operation atomicity, and data-structure integrity. The
+%downside is that performance relies on the ability to maintain large extents of free
+%contiguous disk areas. In addition, random updates to a f i le tend to fragment it,
+%destroying sequentiality. A good defragmentation algorithm is required; this is
+%described in Section 5
+

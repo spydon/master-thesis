@@ -1,0 +1,214 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{fullpage}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage{color}
+\usepackage{authblk}
+\usepackage{todonotes}
+\usepackage{caption}
+\usepackage{url}
+\usepackage{float}
+\usepackage{sectsty}
+\usepackage{pdfpages}
+\usepackage[section]{placeins}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox{gray}{\parbox{\textwidth}{#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+
+\usepackage{tikz}
+\usepackage{gantt}
+
+\usepackage{setspace}
+\usepackage[toc,page]{appendix}
+\usepackage{framed}
+\usepackage[a4paper]{geometry}
+
+\usepackage{alltt}
+\usepackage{subfig}
+
+% Change section fonts
+\allsectionsfont{\sffamily}
+
+% For code box
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{%
+  \parbox{\textwidth}{\colorbox{gray}{\parbox{\textwidth}{#1#2#3}}\vskip-4pt}}
+  \captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+  \lstset{frame=lrb,xleftmargin=\fboxsep,xrightmargin=-\fboxsep}
+% End code box
+
+\usepackage{cite}
+
+% General parameters, for ALL pages:
+\renewcommand{\topfraction}{0.9}	% max fraction of floats at top
+\renewcommand{\bottomfraction}{0.8}	% max fraction of floats at bottom
+% Parameters for TEXT pages (not float pages):
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4} % 2 may work better
+\setcounter{dbltopnumber}{2} % for 2-column pages
+
+\addtolength{\topmargin}{0.5in}
+
+\usepackage{fancyvrb}
+
+\usepackage{tikz} \usetikzlibrary{trees}
+\usepackage{hyperref} % should always be the last package
+
+% useful colours (use sparingly!):
+\newcommand{\blue}[1]{{\color{blue}#1}}
+\newcommand{\green}[1]{{\color{green}#1}}
+\newcommand{\red}[1]{{\color{red}#1}}
+
+% useful wrappers for algorithmic/Python notation:
+\newcommand{\length}[1]{\text{len}(#1)}
+\newcommand{\twodots}{\mathinner{\ldotp\ldotp}} % taken from clrscode3e.sty
+\newcommand{\Oh}[1]{\mathcal{O}\left(#1\right)}
+
+% useful (wrappers for) math symbols:
+\newcommand{\Cardinality}[1]{\left\lvert#1\right\rvert}
+\newcommand{\Ceiling}[1]{\left\lceil#1\right\rceil}
+\newcommand{\Floor}[1]{\left\lfloor#1\right\rfloor}
+\newcommand{\Iff}{\Leftrightarrow}
+\newcommand{\Implies}{\Rightarrow}
+\newcommand{\Intersect}{\cap}
+\newcommand{\Sequence}[1]{\left[#1\right]}
+\newcommand{\Set}[1]{\left\{#1\right\}}
+\newcommand{\SetComp}[2]{\Set{#1\SuchThat#2}}
+\newcommand{\SuchThat}{\mid}
+\newcommand{\Tuple}[1]{\langle#1\rangle}
+\newcommand{\Union}{\cup}
+\usetikzlibrary{positioning,shapes,shadows,arrows}
+\providecommand{\keywords}[1]{\textbf{\textit{Keywords: }} #1}
+
+\title{\textbf{Time Plan: Designing a Virtual Organisational Layer for Cloud Content}}
+\author{Lukas Klingsbo}
+
+\begin{document}
+
+\maketitle
+\newpage
+\newgeometry{top=3cm,right=5cm}
+\section{Time Plan}
+\begin{flushright}
+\begin{gantt}{7}{6}
+    \begin{ganttitle}
+        \titleelement{2015}{6}
+    \end{ganttitle}
+    \begin{ganttitle}
+        \titleelement{46}{1}
+        \titleelement{47}{1}
+        \titleelement{48}{1}
+        \titleelement{49}{1}
+        \titleelement{50}{1}
+        \titleelement{51}{1}
+    \end{ganttitle}
+    \ganttbar{Basic front-end}{0}{3}
+    \ganttbarcon{File upload capabilities}{3}{1}
+    \ganttbar{Implement CDN connections}{4}{2}
+
+    \ganttbar{Background chapter}{1}{1}
+    \ganttbar{Related terminology chapter}{2}{1}
+
+\end{gantt}
+
+\begin{gantt}{9}{6}
+    \begin{ganttitle}
+        \titleelement{2016}{6}
+    \end{ganttitle}
+    \begin{ganttitle}
+        \titleelement{1}{1}
+        \titleelement{3}{1}
+        \titleelement{4}{1}
+        \titleelement{5}{1}
+        \titleelement{6}{1}
+        \titleelement{7}{1}
+    \end{ganttitle}
+    \ganttbar{Interviews}{0}{1}
+    \ganttbarcon{Implement decided features}{0}{2}
+    \ganttbarcon{Extend front-end}{2}{2}
+
+    \ganttbar{Analyse scalability}{4}{1}
+    \ganttbar{Analyse security}{4}{1}
+    \ganttbar{Write tests}{4}{1}
+    \ganttbarcon{Evaluation chapter}{5}{1}
+    
+\end{gantt}
+
+\begin{gantt}{10}{6}
+    \begin{ganttitle}
+        \titleelement{2016}{6}
+    \end{ganttitle}
+    \begin{ganttitle}
+        \titleelement{8}{1}
+        \titleelement{9}{1}
+        \titleelement{10}{1}
+        \titleelement{11}{1}
+        \titleelement{12}{1}
+        \titleelement{13}{1}
+    \end{ganttitle}
+    
+    \ganttbar{Final code modifications}{0}{6}
+    \ganttbar{Methods chapter}{0}{1}
+    \ganttbar{Related work chapter}{0}{1}
+    \ganttbar{Discussion chapter}{1}{1}
+    \ganttbar{Conclusion chapter}{2}{1}
+    \ganttbar{Future work chapter}{3}{1}
+
+    \ganttbar{Implement audit logging}{2}{1}
+    \ganttbar{Implement authorization}{3}{2}
+\end{gantt}
+
+\tiny{Week 52 and week 2+(maybe a few days of week 3) I will be away from the office}
+\end{flushright}
+\newpage
+\restoregeometry
+\section{Upcoming}
+    \subsection{Implementation}
+    \begin{itemize}
+        \item Implement basic front-end
+        \item Implement file upload capabilities in back-end
+        \item Write tests
+        \item Implement CDN connections
+        \item Conduct interviews to find wanted functionality
+        \item Implement decided features
+        \item Extend front-end to be feature complete
+        \item Implement audit logging
+        \item Implement authorization
+        \item Analyse scalability
+        \item Analyse security
+    \end{itemize}
+    
+    \subsection{Thesis}
+    \begin{itemize}
+        \item Extend background chapter
+        \item Extend related terminology chapter
+        \item Extend related work chapter
+        \item Write methods chapter
+        \item Write evaluation chapter
+        \item Extend ``Security of the system'' chapter (Sub Evaluation)
+        \item Write scalability chapter (Sub Evaluation)
+        \item Write discussion chapter
+        \item Write conclusions chapter
+        \item Write future work chapter
+    \end{itemize}
+
+\newpage
+\section{Done}
+\begin{itemize}
+    \item Researched current solution (battlebinary)
+    \item Researched and compared fitting tree structures and models
+    \item Model Checking (JPF) to see that the solution idea is sound
+    \item Defined REST endpoints and JSON structure
+    \item Built REST API (Might need some tweaking later)
+    \item Implemented snapshot functionality
+    \item Implemented MongoDB as persistent storage
+    \item Researched React and Reflux (Ongoing)
+\end{itemize}
+
+\end{document}
