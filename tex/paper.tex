@@ -154,6 +154,10 @@ For secret content this can be a problem and that is what this thesis is about. 
 access control on content and groups of content in the form of folders and snapshots. A system was developed to make 
 the underlying theory work in practice. 
 
+The research question that this report answers is whether it is practically feasible to use Copy-on-Write 
+for a high-level system like the one that is implemented. The work also thoroughly compares different types of lazy 
+snapshots to figure out which is the most
+
 \newpage
 \section{Related Terminology}
 \subsection{Technologies}
@@ -165,16 +169,27 @@ delta between the virtual DOMs~\cite{REACT}. React can be seen as the system for
 implementing a MVC (Model-View-Controller) architecture.
 
 \subsubsection{Reflux}
-Explain difference to MVC etc.
+Reflux~\cite{REFLUX} is an idea and a simple library of how to structure your application. It features a unidirectional
+dataflow (see Figure~\ref{fig:reflux}) which makes it more suitable, than for example Flux~\cite{FLUX}, when using a 
+functional reactive programming style.
 
-\subsubsection{Scala}
-Scala is a multi-paradigm programming language. It most commonly runs on the JVM and compared to Java it supports 
-most functional programming features at the same time as it supports object oriented programming~\cite{SCALA}.
+\begin{figure}[htp] 
+    \centering
+    \includegraphics[scale=0.4]{reflux.png}
+    \caption{Reflux unidirectional dataflow}
+    \label{fig:reflux}
+\end{figure}
 
-\subsubsection{REST}
-REST stands for representational state transfer, it is an architectural idea for writing stateless services. These 
-services usually use URIs to identify specific resources and HTTP to modify or query these resources~\cite{REST}. 
-In this work we use a RESTful API, which means that it is an API following the REST architecture.
+\subsubsection{Scala} 
+Scala is a multi-paradigm programming language. It most commonly runs on the JVM and compared 
+to Java it supports most functional programming features at the same time as it supports object oriented 
+programming~\cite{SCALA}.  
+
+\subsubsection{REST} REST stands for representational state transfer, it is an architectural 
+idea for writing stateless services. These services usually use URIs to identify specific resources and HTTP to 
+modify or query these resources~\cite{REST}. 
+
+In this work we use a RESTful API, which means that it is an API following the REST architecture.  
 
 \subsubsection{MongoDB}
 MongoDB is a document-oriented database which means that it does not have the concept of rows as normal relational 
@@ -210,7 +225,11 @@ TODO: Polish and extend
 
 \section{Background}
 \subsection{About Uprise}
-Uprise is a company based in Uppsala, Sweden. 
+Uprise is a company based in Uppsala, Sweden. It is an EA studio focussing on creating great gaming experiences, that means 
+that they are not focussed on the actual gameplay which other EA studios like DICE is. 
+
+At the moment they are for example very involved with producing the Star Wars Battlefront game by making menu systems and 
+developing the companion app, Battlefront companion.
 
 \subsection{The current system}
 Today a system called battlebinary~\cite{BATTLEBINARY} is used for managing and uploading files, mostly images, to content 
@@ -306,6 +325,7 @@ loaded code:        classes=111,
 
 \newpage 
 \section{Copy-on-Write}
+\label{sec:copy-on-write}
 As the persistent storage does not implement transactions or locks a lot of different problems can occur when several 
 clients are working on the same data set at the same time. Such problems could be race conditions and determining the 
 happened-before relation. In this work this problem is solved by implementing Copy-on-Write.
@@ -335,10 +355,25 @@ copy operations could be done and so that tasks could share read-write memory~\c
 TODO: Insert more systems here
 \section{Implementation}
 \subsection{Perius}
-Perius is the implementation that was done to solve the problem at hand at Uprise. This implementation is far from as 
-efficient as the others in most aspects, but more efficient in some. As the implementation is built upon MongoDB as 
-persistent storage and not a pure tree structure, single nodes can be fetched in O(1) but when querying for subtrees 
-they need to be built first, which takes O(log(n)), where n is the number of nodes in the subtree. 
+Perius is the implementation that was done to solve the problem at hand at Uprise. Perius has a
+back-end written in Scala and a front-end written in ES6 (Javascript), but they are both interchangeable. 
+The back-end has a REST API running, which is how the front-end communicates with the back-end.
+
+TODO: Picture of the front-end
+
+The service features a virtual file structure over the assets that has been stored, snapshots,
+security management of whole containers as well as individual files, audit and access logging, multi
+project support and a modular design for persistent storage.
+
+The front-end is written in ES6 with React and Reflux, the styling is done with the help of
+Bootstrap.
+
+\subsection{Snapshots}
+This implementation is far from as 
+efficient as the other Copy-on-Write systems described in Section~\ref{sec:copy-on-write} in most aspects, but more efficient 
+in some. As the implementation is built upon MongoDB as persistent storage and not a pure tree structure, single nodes 
+can be fetched in O(1) but when querying for subtrees they need to be built first, which takes O(log(n)), where n is the 
+number of nodes in the subtree. 
 
 In Perius snapshots and clones are not taken in the fashion which Btrfs uses, which can be seen in 
 Figure~\ref{fig:btrfs_tree}. As Perius does not have the tree structure pre-built and each node is instead stored in a 
