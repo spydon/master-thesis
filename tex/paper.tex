@@ -147,31 +147,33 @@
 \pagenumbering{arabic}
 \setcounter{page}{1}
 \section{Introduction}
-Developing larger projects containing static content usually involves using a Content Distribution Network 
-to be able to scale to a large user base. The commercial Content Distribution Networks are usually fairly easy to use, 
-the content that is to be used in a project is usually simply uploaded and then directly available to the public. 
-For secret content this can be a problem and that is what this thesis is about. This work examines ways of enforcing 
-access control on content and groups of content in the form of folders and snapshots. A system was developed to make 
-the underlying theory work in practice. 
+Developing larger projects containing static content usually involves using a Content Distribution
+Network to be able to scale to a large user base. The commercial Content Distribution Networks are
+usually fairly easy to use, the content that is to be used in a project is usually simply uploaded
+and then directly available to the public.  For secret content this can be a problem and that is
+what this thesis is about. This work examines ways of enforcing access control on content and groups
+of content in the form of folders and snapshots. A system was developed to make the underlying
+theory work in practice. 
 
-The research question that this report answers is whether it is practically feasible to use Copy-on-Write 
-for a high-level system like the one that is implemented. The work also thoroughly compares different types of lazy 
-snapshots to figure out which is the most
+The research question that this report answers is whether it is practically feasible to use
+Copy-on-Write for a high-level system like the one that is implemented. The work also thoroughly
+compares different types of lazy snapshots to figure out which is the most
 
 \newpage
 \section{Related Terminology}
 \subsection{Technologies}
 \subsubsection{React}
-React is a JavaScript library for building user interfaces. React uses both its own virtual DOM and the browser's, 
-this makes it able to efficiently update dynamic web pages after a change of state through comparing the old virtual 
-DOM with the resulting virtual DOM after the state change and then only update the browser's DOM according to the 
-delta between the virtual DOMs~\cite{REACT}. React can be seen as the system for handling views in front-ends 
-implementing a MVC (Model-View-Controller) architecture.
+React is a JavaScript library for building user interfaces. React uses both its own virtual DOM and
+the browser's, this makes it able to efficiently update dynamic web pages after a change of state
+through comparing the old virtual DOM with the resulting virtual DOM after the state change and then
+only update the browser's DOM according to the delta between the virtual DOMs~\cite{REACT}. React
+can be seen as the system for handling views in front-ends implementing a MVC
+(Model-View-Controller) architecture.
 
 \subsubsection{Reflux}
-Reflux~\cite{REFLUX} is an idea and a simple library of how to structure your application. It features a unidirectional
-dataflow (see Figure~\ref{fig:reflux}) which makes it more suitable, than for example Flux~\cite{FLUX}, when using a 
-functional reactive programming style.
+Reflux~\cite{REFLUX} is an idea and a simple library of how to structure your application. It
+features a unidirectional dataflow (see Figure~\ref{fig:reflux}) which makes it more suitable, than
+for example Flux~\cite{FLUX}, when using a functional reactive programming style.
 
 \begin{figure}[htp] 
     \centering
@@ -181,71 +183,80 @@ functional reactive programming style.
 \end{figure}
 
 \subsubsection{Scala} 
-Scala is a multi-paradigm programming language. It most commonly runs on the JVM and compared 
-to Java it supports most functional programming features at the same time as it supports object oriented 
-programming~\cite{SCALA}.  
+Scala is a multi-paradigm programming language. It most commonly runs on the JVM and compared to
+Java it supports most functional programming features at the same time as it supports object
+oriented programming~\cite{SCALA}.  
 
-\subsubsection{REST} REST stands for representational state transfer, it is an architectural 
-idea for writing stateless services. These services usually use URIs to identify specific resources and HTTP to 
-modify or query these resources~\cite{REST}. 
+\subsubsection{REST} 
+REST stands for representational state transfer, it is an architectural idea for writing stateless
+services. These services usually use URIs to identify specific resources and HTTP to modify or query
+these resources~\cite{REST}. 
 
 In this work we use a RESTful API, which means that it is an API following the REST architecture.  
 
 \subsubsection{MongoDB}
-MongoDB is a document-oriented database which means that it does not have the concept of rows as normal relational 
-databases has. Instead each entity in the database is stored as a document which is not fixed to a predefined table 
-structure~\cite{MONGODB}. MongoDB lacks support for joins too improve its possibility to scale, which can be a big 
-down side to some applications containing the need for such logic.
+MongoDB is a document-oriented database which means that it does not have the concept of rows as
+normal relational databases has. Instead each entity in the database is stored as a document which
+is not fixed to a predefined table structure~\cite{MONGODB}. MongoDB lacks support for joins too
+improve its possibility to scale, which can be a big down side to some applications containing the
+need for such logic.
 
 \subsection{Abbreviations}
 
 \subsubsection{JPF}
-Java Path Finder - It was developed by NASA and in 2005 they released it under an open source licence, which made more 
-people contribute to the project. JPF is usually used for doing model checking of concurrent programs to easily find 
-for example race conditions and dead locks.
+Java Path Finder - It was developed by NASA and in 2005 they released it under an open source
+licence, which made more people contribute to the project. JPF is usually used for doing model
+checking of concurrent programs to easily find for example race conditions and dead locks.
 
 \subsubsection{CDN}
-Content Distribution/Delivery Network - Replicates content to several servers, usually spread out geographically. Once a 
-request is made, the network serves content from the server closest to the requester.
+Content Distribution/Delivery Network - Replicates content to several servers, usually spread out
+geographically. Once a request is made, the network serves content from the server closest to the
+requester.
 
 \section{Related Work}
 \subsection{Copy-on-Write}
-This work relies heavily on the Copy-on-Write principle which was founded and used in the Mach kernel~\cite{COPYONWRITE}. 
+This work relies heavily on the Copy-on-Write principle which was founded and used in the Mach
+kernel~\cite{COPYONWRITE}. 
 
-Copy-on-Write is used in virtual memory management systems~\cite{VIRTCOW}, snapshot functionality in both file 
-systems~\cite{BTRFS} and logical volume management systems~\cite{LVMCOW}, and as an optimisation technique for objects and 
-types in programming languages\cite{LANGCOW}.
+Copy-on-Write is used in virtual memory management systems~\cite{VIRTCOW}, for snapshot
+functionality in both file systems~\cite{BTRFS} and logical volume management systems~\cite{LVMCOW},
+and as an optimisation technique for objects and types in programming languages\cite{LANGCOW}.
 
-Its principle is that when processes or nodes share data in between each other, the data is not copied until one of the 
-processes does changes to it. This is an optimisation as the processes does not have to send or copy all of the related 
-data that is in memory, rather they only have to send pointers to the data. After many Copy-on-Write's a complex structure 
-can be built up, but it is possible to solve that structure~\cite{COPYONWRITE2}.
+Its principle is that when processes or nodes share data in between each other, the data is not
+copied until one of the processes does changes to it. This is an optimisation as the processes does
+not have to send or copy all of the related data that is in memory, rather they only have to send
+pointers to the data. After many Copy-on-Write's a complex structure can be built up, but it is
+possible to solve that structure~\cite{COPYONWRITE2}.
 
 TODO: Polish and extend
 
 \section{Background}
 \subsection{About Uprise}
-Uprise is a company based in Uppsala, Sweden. It is an EA studio focussing on creating great gaming experiences, that means 
-that they are not focussed on the actual gameplay which other EA studios like DICE is. 
+Uprise is a company based in Uppsala, Sweden. It is an EA studio focussing on creating great gaming
+experiences, that means that they are not focussed on the actual gameplay which other EA studios
+like DICE is. 
 
-At the moment they are for example very involved with producing the Star Wars Battlefront game by making menu systems and 
-developing the companion app, Battlefront companion.
+At the moment they are for example very involved with producing the Star Wars Battlefront game by
+making menu systems and developing the companion app, Battlefront companion.
 
 \subsection{The current system}
-Today a system called battlebinary~\cite{BATTLEBINARY} is used for managing and uploading files, mostly images, to content 
-delivery networks. The current system does not make use out of the security features that the CDN's are offering, instead it 
-uses a form of security by obscurity. When a file is uploaded to a CDN it is open for the public, but its filename is 
-composed out of its original filename concatenated with a part of the MD5 hash of the content of the file, which makes it an 
-extremely hard process to access the file on the CDN without access to the original file or a reference to the URI.
+Today a system called battlebinary~\cite{BATTLEBINARY} is used for managing and uploading files,
+mostly images, to content delivery networks. The current system does not make use out of the
+security features that the CDN's are offering, instead it uses a form of security by obscurity. When
+a file is uploaded to a CDN it is open for the public, but its filename is composed out of its
+original filename concatenated with a part of the MD5 hash of the content of the file, which makes
+it an extremely hard process to access the file on the CDN without access to the original file or a
+reference to the URI.
 
-In the current system you can only upload a file once as there will be a collision in the upload otherwise, as the old and 
-the new file will have the same MD5 hash.  
+In the current system you can only upload a file once as there will be a collision in the upload
+otherwise, as the old and the new file will have the same MD5 hash.  
 
 \subsection{Problem description}
-As the current system does not offer proper security measurements, is lacking a lot of features that is needed and does not 
-scale very well, a new system should be developed. This work is about examining a way of implementing Copy-on-Write in a 
-high level system like this, which should solve the scalability problem and make it possible to implement wanted features
-like snapshots, cloning and concurrent modifications of content.
+As the current system does not offer proper security measurements, is lacking a lot of features that
+is needed and does not scale very well, a new system should be developed. This work is about
+examining a way of implementing Copy-on-Write in a high level system like this, which should solve
+the scalability problem and make it possible to implement wanted features like snapshots, cloning
+and concurrent modifications of content.
 
 \newpage 
 \section{Model}
@@ -258,42 +269,50 @@ like snapshots, cloning and concurrent modifications of content.
 \end{figure}
 
 \subsubsection{Content}
-Content is meta data about a file and is stored in a container, it is a form of virtual file.
-The content can refer to for example an image, video or binary blob.
+Content is meta data about a file and is stored in a container, it is a form of virtual file.  The
+content can refer to for example an image, video or binary blob.
 
 \subsubsection{Project}
-A project is what is created to contain all content and containers related to a real project. Files can be changed 
-within a project and the system can contain several projects and their virtual content are completely disjoint.
+A project is what is created to contain all content and containers related to a real project. Files
+can be changed within a project and the system can contain several projects and their virtual
+content are completely disjoint.
 
 \subsubsection{Container}
 A container is a virtual folder within a project which can contain content and other containers.
 
 \subsubsection{Snapshot}
-A snapshot is a read-only container from the state which the container the was in when the snapshot was created. 
-A snapshot can not be updated and can only be deleted from the root of the snapshot. Snapshots are by default stored 
-as siblings to the container which they were made from, but they can be contained by any container.
+A snapshot is a read-only container from the state which the container the was in when the snapshot
+was created.  A snapshot can not be updated and can only be deleted from the root of the snapshot.
+Snapshots are by default stored as siblings to the container which they were made from, but they can
+be contained by any container.
 
 \subsubsection{File}
-A file refers to an actual physical file. Files are stored in the database to make backup, deployment and migration easier.
+A file refers to an actual physical file. Files are stored in the database to make backup,
+deployment and migration easier.
 
 \subsubsection{User}
-A user is the structure that handles people who have been granted access to the system.
-Access to the system is handled by a separate service, like LDAP.
+A user is the structure that handles people who have been granted access to the system.  Access to
+the system is handled by a separate service, like LDAP.
 
 \subsection{JPF}
-Java path finder was used to show that the model and plan of how to build the system was sound. The model was built in Java 
-with the objective of being as reduced and simple as possible, without loosing any of the cases that needed to be covered 
-by the model checker. As the users are mainly going to be handled by external systems they were not included in the model.
+Java path finder was used to show that the model and plan of how to build the system was sound. The
+model was built in Java with the objective of being as reduced and simple as possible, without
+loosing any of the cases that needed to be covered by the model checker. As the users are mainly
+going to be handled by external systems they were not included in the model.
 
-Each collection in the persistent storage was emulated by using the built-in ConcurrentHashMap type. 
-Each client was represented by a thread and each action taken by the client was randomised. The id hashes which MongoDB is 
-using for each entity was imported from the mongo-java-driver-2.13.3 and each object had its own id, generated in the same 
-fashion as the real implementation is using, randomly generated by the ObjectId class to minimise collisions that is. 
-Furthermore no locking or transactions were used and the threads were running fully concurrently, without any sleep statements. 
+Each collection in the persistent storage was emulated by using the built-in ConcurrentHashMap type.
+Each client was represented by a thread and each action taken by the client was randomised. The id
+hashes which MongoDB is using for each entity was imported from the mongo-java-driver-2.13.3 and
+each object had its own id, generated in the same fashion as the real implementation is using,
+randomly generated by the ObjectId class to minimise collisions that is.  Furthermore no locking or
+transactions were used and the threads were running fully concurrently, without any sleep
+statements. 
 
-ConcurrentHashMap had to be used in favour of the normal HashMap as the normal HashMaps can't be iterated over concurrently.
+ConcurrentHashMap had to be used in favour of the normal HashMap as the normal HashMaps can't be
+iterated over concurrently.
 
-JPF checked each permutation of states that the threads can end up in, the result of the run can be seen in Listing~\ref{JPFRESULT}.
+JPF checked each permutation of states that the threads can end up in, the result of the run can be
+seen in Listing~\ref{JPFRESULT}.
 
 \newpage
 \begin{lstlisting}[label=JPFRESULT,caption=Results of JPF run]
@@ -324,20 +343,33 @@ loaded code:        classes=111,
 \end{lstlisting}
 
 \newpage 
-\section{Copy-on-Write}
+\section{Snapshots}
+Write what snapshots are
+\subsection{Copy-on-Write}
 \label{sec:copy-on-write}
-As the persistent storage does not implement transactions or locks a lot of different problems can occur when several 
-clients are working on the same data set at the same time. Such problems could be race conditions and determining the 
-happened-before relation. In this work this problem is solved by implementing Copy-on-Write.
+To efficiently create snapshots of a system Copy-on-Write can be used to make it possible to create
+snapshots in O(1)\cite{BTRFS}, this is due to the fact that to create a snapshot in a system using
+Copy-on-Write you only need to reference the current nodes in the tree and make sure that they are
+not removed, see Figure~\ref{fig:btrfs_tree}.
+
+As the persistent storage, used in this implementation (Section~\ref{persistent_storage}), does not
+implement transactions or locks a lot of different problems can occur when several clients are
+working on the same data set at the same time. Such problems could be race conditions and
+determining the happened-before relation. In this work this problem is solved by implementing
+Copy-on-Write.
+
+\subsection{Full Copy}
+
 
 \subsection{Comparison of Copy-on-Write system implementations}
 \subsubsection{BTRFS}
-Btrfs is a B-tree file system for Linux which makes use of Copy-on-Write to make it able to do efficient writeable 
-snapshots and clones. It also supports cloning of subtrees without having to actually copy the whole subtree, 
-this is due to the Copy-on-Write effect. As several nodes in the tree can refer to the same node each node keeps 
-track of how many parents it has by a reference counter so that the node can be deallocated once the node does not 
-have any parents any more. The reference counter is not stored in the nodes themselves but rather in a separate data 
-structure so that a nodes counter can be modified without modifying the node itself and therefore eludes the 
+Btrfs is a B-tree file system for Linux which makes use of Copy-on-Write to make it able to do
+efficient writeable snapshots and clones. It also supports cloning of subtrees without having to
+actually copy the whole subtree, this is due to the Copy-on-Write effect. As several nodes in the
+tree can refer to the same node each node keeps track of how many parents it has by a reference
+counter so that the node can be deallocated once the node does not have any parents any more. The
+reference counter is not stored in the nodes themselves but rather in a separate data structure so
+that a nodes counter can be modified without modifying the node itself and therefore eludes the
 Copy-on-Write that would have to occur.
 
 \begin{figure}[htp] \centering{
@@ -347,17 +379,19 @@ Copy-on-Write that would have to occur.
 \end{figure}
 
 \subsubsection{Mach kernel}
-In the mid 80s when the development of the Mach kernel started, there was problems with that physically copying memory 
-was too slow. Too minimise the copying of memory, Copy-on-Write was implemented. It was implemented so that virtual 
-copy operations could be done and so that tasks could share read-write memory~\cite{MACH}.
+In the mid 80s when the development of the Mach kernel started, there was problems with that
+physically copying memory was too slow. Too minimise the copying of memory, Copy-on-Write was
+implemented. It was implemented so that virtual copy operations could be done and so that tasks
+could share read-write memory~\cite{MACH}.
 
 
 TODO: Insert more systems here
 \section{Implementation}
 \subsection{Perius}
 Perius is the implementation that was done to solve the problem at hand at Uprise. Perius has a
-back-end written in Scala and a front-end written in ES6 (Javascript), but they are both interchangeable. 
-The back-end has a REST API running, which is how the front-end communicates with the back-end.
+back-end written in Scala and a front-end written in ES6 (Javascript), but they are both
+interchangeable.  The back-end has a REST API running, which is how the front-end communicates with
+the back-end.
 
 TODO: Picture of the front-end
 
@@ -365,40 +399,43 @@ The service features a virtual file structure over the assets that has been stor
 security management of whole containers as well as individual files, audit and access logging, multi
 project support and a modular design for persistent storage.
 
-The front-end is written in ES6 with React and Reflux, the styling is done with the help of
+The front-end is written in ES6 with React and Reflux, and the styling is done with the help of
 Bootstrap.
 
 \subsection{Snapshots}
-This implementation is far from as 
-efficient as the other Copy-on-Write systems described in Section~\ref{sec:copy-on-write} in most aspects, but more efficient 
-in some. As the implementation is built upon MongoDB as persistent storage and not a pure tree structure, single nodes 
-can be fetched in O(1) but when querying for subtrees they need to be built first, which takes O(log(n)), where n is the 
-number of nodes in the subtree. 
+This implementation is far from as efficient as the other Copy-on-Write systems described in
+Section~\ref{sec:copy-on-write} in most aspects, but more efficient in some. As the implementation
+is built upon MongoDB as persistent storage and not a pure tree structure, single nodes can be
+fetched in O(1) but when querying for subtrees they need to be built first, which takes O(log(n)),
+where n is the number of nodes in the subtree. 
 
-In Perius snapshots and clones are not taken in the fashion which Btrfs uses, which can be seen in 
-Figure~\ref{fig:btrfs_tree}. As Perius does not have the tree structure pre-built and each node is instead stored in a 
-flat storage space, such operation would be too computationally expensive as trees would have to be merged when 
-collisions occur, due to the non-blocking nature of the application. Instead this implementation makes a full copy of 
-the meta-data of the tree, but still refers to the same binary files until they are changed, which results in the 
-creation of a new node.
+In Perius snapshots and clones are not taken in the fashion which Btrfs uses, which can be seen in
+Figure~\ref{fig:btrfs_tree}. As Perius does not have the tree structure pre-built and each node is
+instead stored in a flat storage space, such operation would be too computationally expensive as
+trees would have to be merged when collisions occur, due to the non-blocking nature of the
+application. Instead this implementation makes a full copy of the meta-data of the tree, but still
+refers to the same binary files until they are changed, which results in the creation of a new node.
 
 \subsection{Methods for determining\\implementation details}
-This chapter introduces the different methods used to determine how the new system should be implemented, 
-which DBMS it should use and how the estimation of long term scaling was done.
+This chapter introduces the different methods used to determine how the new system should be
+implemented, which DBMS it should use and how the estimation of long term scaling was done.
 
 \subsection{Resulting system}
 \subsubsection{Persistent storage}
+\label{persistent_storage}
 \subsubsubsection{MongoDB}
-MongoDB was chosen as the persistent storage because of its quick lookups and because of its internal storage 
-format called BSON, which is very similar to JSON which the API is using. As the formats are similar, the process of 
-marshalling and unmarshalling becomes quite easy between the core code, MongoDB instance and REST interface. 
-The second reason was that if the system needs to scale in the future it is very easy to distribute MongoDB and if 
-needed the system can easily be migrated to Reactive Mongo, which is an asynchronous and 
-non-blocking driver for MongoDB and can therefore make the system scale even further~\cite{REACTIVEMONGO}.
+MongoDB was chosen as the persistent storage because of its quick lookups and because of its
+internal storage format called BSON, which is very similar to JSON which the API is using. As the
+formats are similar, the process of marshalling and unmarshalling becomes quite easy between the
+core code, MongoDB instance and REST interface.  The second reason was that if the system needs to
+scale in the future it is very easy to distribute MongoDB and if needed the system can easily be
+migrated to Reactive Mongo, which is an asynchronous and non-blocking driver for MongoDB and can
+therefore make the system scale even further~\cite{REACTIVEMONGO}.
 
 \subsubsubsection{API}
-REST was chosen as only basic CRUD operations needs to be performed and because the BSON format which is used in 
-MongoDB is almost identical ~\cite{BSON} to the standardised JSON format which is used by RESTful services~\cite{JSON}. 
+REST was chosen as only basic CRUD operations needs to be performed and because the BSON format
+which is used in MongoDB is almost identical ~\cite{BSON} to the standardised JSON format which is
+used by RESTful services~\cite{JSON}. 
 
 \subsubsection{REST Endpoints}
 For the front-end to communicate with the back-end, a RESTful service is implemented.
@@ -436,9 +473,10 @@ The following endpoints were configured:
       \subitem DELETE - delete existing content in a specific container
 \end{itemize}
 
-As can be seen several expected endpoints are missing, this is intentional as the operations missing can be performed in 
-a more efficient way. Such endpoint is for example $GET projects/\{id\}/containers$ as all containers exist in 
-$GET projects/\{id\}$ and the interface should present a file structure where both content and containers are shown.
+As can be seen several expected endpoints are missing, this is intentional as the operations missing
+can be performed in a more efficient way. Such endpoint is for example $GET
+projects/\{id\}/containers$ as all containers exist in $GET projects/\{id\}$ and the interface
+should present a file structure where both content and containers are shown.
 
 \subsection{Findings}
 \subsubsection{Scalability}
