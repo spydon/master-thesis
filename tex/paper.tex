@@ -229,6 +229,31 @@ of the management system.
 \subsection{Design}
 \fix Mathematical formal description of how the system works
 
+\begin{itemize}
+    \item[] c - Container
+        \subitem Represents a structure that symbolises a folder in a virtual file system
+    \item[] f - File
+        \subitem A file in the system 
+    \item[] p - Pointer
+        \subitem A pointer to a file in the system 
+    \item[] u - User
+        \subitem A user in the system
+    \item[] a - Access property
+        \subitem Granted access to container
+    \item[] A[u,c] - Access matrix
+        \subitem Describes what containers the users in the system can access 
+\end{itemize}
+
+\subsection{Access rights}
+\begin{equation}
+    \begin{split}
+        u \in U \text{ can read } c \in C & \Iff u \in A[u,c] \\
+        u \in U \text{ can write } c \in C & \Iff u \in A[u,c] \text{ and readonly } \notin c \\
+        u \in U \text{ can delete } p \in c & \Iff u \in A[u,c] \text{ and readonly } \notin c \\
+        \forall c \in C, \quad \exists u \in U & \mid a \in A[u,c] 
+    \end{split}
+\end{equation}
+
 \subsection{Findings}
 
 \newpage
@@ -365,7 +390,13 @@ back-end written in Scala and a front-end written in ES6 (Javascript), but they 
 interchangeable.  The back-end has a REST API running, which is how the front-end communicates with
 the back-end.
 
-\fix Picture of the front-end
+\fix Picture of the newest front-end
+\begin{figure}[htp] \centering{
+    \includegraphics[scale=0.4]{frontend.png}}
+    \caption{Front-end~\cite{BTRFS}}
+    \label{fig:frontend}
+\end{figure}
+
 
 The service features a virtual file structure over the assets that has been stored, snapshots,
 security management of whole containers as well as individual files, audit and access logging, multi
@@ -395,7 +426,7 @@ migrated to Reactive Mongo, which is an asynchronous and non-blocking driver for
 therefore make the system scale even further~\cite{REACTIVEMONGO}.
 
 \subsubsubsection{API}
-In this work a RESTful API was implemented and used for back-end $\Leftrightarrow$ front-end
+In this work a RESTful API was implemented and used for back-end $\Iff$ front-end
 communication.
 
 REST was chosen as only basic CRUD operations needs to be performed and because the BSON format
