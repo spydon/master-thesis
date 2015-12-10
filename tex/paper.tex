@@ -226,23 +226,21 @@ of the management system.
 
 \subsection{Approach}
 
-\subsection{Design}
+\subsection{Elements of the Model}
 \fix Mathematical formal description of how the system works
 
-\begin{itemize}
-    \item[] c - Container
-        \subitem Represents a structure that symbolises a folder in a virtual file system
-    \item[] f - File
-        \subitem A file in the system 
-    \item[] p - Pointer
-        \subitem A pointer to a file in the system 
-    \item[] u - User
-        \subitem A user in the system
-    \item[] a - Access property
-        \subitem Granted access to container
-    \item[] A[u,c] - Access matrix
-        \subitem Describes what containers the users in the system can access 
-\end{itemize}
+\begin{center}
+    \begin{tabular}{ | l | l | l | p{5cm} |}
+        \hline
+        Set & Elements & semantics \\ \hline
+        C   & $c_0\dots c_n$                & Containers; folders in the virtual file system\\ \hline
+        F   & $f_0\dots f_n$                & Files; files, images, videos\\ \hline
+        P   & $p_0\dots p_n$                & Content; Meta-data for files\\ \hline
+        U   & $u_0\dots u_n$                & Users; registered users in the system\\ \hline
+        A   & $A[u_0,c_0]\dots A[u_n, c_n]$ & Access matrix; describes what containers users have access to\\ \hline
+    \end{tabular}
+\end{center}
+
 
 \subsection{Access rights}
 \begin{equation}
@@ -250,9 +248,48 @@ of the management system.
         u \in U \text{ can read } c \in C & \Iff u \in A[u,c] \\
         u \in U \text{ can write } c \in C & \Iff u \in A[u,c] \text{ and readonly } \notin c \\
         u \in U \text{ can delete } p \in c & \Iff u \in A[u,c] \text{ and readonly } \notin c \\
+        u \nexists U \text{ can delete } f \in F \\
         \forall c \in C, \quad \exists u \in U & \mid a \in A[u,c] 
     \end{split}
 \end{equation}
+
+\subsection{Data integrity}
+A computer system or subsystem is defined as possessing the property of integrity if it behaves consistently
+according to a defined standard. This implies that a subsystem possessing the property of integrity
+does not guarantee an absolute behaviour of the system, but rather that it performs according to
+what its creator intended ~\cite{BIBA}.
+
+\subsection{Initial Assumptions}
+To create an integrity model, some initial assumptions have to be made about what the correct behaviour
+of the system is, which the model then can be shown to follow. In this work unintentional behaviour
+as the result of data modification is the main concern, which could be used for sabotage or simply be the
+effect unintentional unfortunate race conditions etc. 
+
+\subsection{Integrity Threats}
+According to Biba et. al~\cite{BIBA} one can consider two threat sources, namely subsystem external
+and subsystem internal. The external sources could be another system calling the subsystem with
+faulty data or trying to make inaccurate calls to program functions, it could also be somebody
+trying to tamper with the exposed functions of the program. Threats that are internal could be a
+malicious part of the subsystem or simply an incorrect part of the subsystem, which does not behave
+according to specification.
+
+In this work external threats are handled as threats that can occur from what has been exposed by
+the API (See Section~\ref{sec:API} and internal threats as incorrect implementation. As the server
+and its system are assumed safe malicious subsystems are not considered.
+
+
+\fix Translate to mathematical expressions
+
+\begin{itemize}
+    \item if a user wants to update a file in a content, the file is copied and the original is intact
+    \item if a user reads content and then writes to it, the content is directly changed
+    \item if a user copies content, a new content is created at the destination with reference to the same
+          file
+    \item if a user reads from a container and then writes to it, the container is directly changed
+          (Which means last write wins, which doesn't matter)
+    \item if a user copies a container, the full container tree is re created with new ids at the destination,
+          its content still refers to the same files.
+\end{itemize}
 
 \subsection{Findings}
 
@@ -426,6 +463,7 @@ migrated to Reactive Mongo, which is an asynchronous and non-blocking driver for
 therefore make the system scale even further~\cite{REACTIVEMONGO}.
 
 \subsubsubsection{API}
+\label{sec:API}
 In this work a RESTful API was implemented and used for back-end $\Iff$ front-end
 communication.
 
@@ -577,8 +615,7 @@ loaded code:        classes=111,
 %{{{
 
 %What to write about
-%Battle Binar
-y
+%Battle Binary
 %Security features of CDN's
 %What is needed by the logic, like what happens after two consecutive deletes
 %
