@@ -213,6 +213,7 @@ still a part of the system~\cite{SNAPSHOT}.
 
 \newpage 
 
+\label{sec:model}
 \section{Model}
 The model for this work should show how the data can not be accessed or modified by unauthorized
 users and how the integrity of the data is always kept in the Perius system. 
@@ -287,8 +288,8 @@ and its system are assumed safe malicious subsystems are not considered.
           file
     \item if a user reads from a container and then writes to it, the container is directly changed
           (Which means last write wins, which doesn't matter)
-    \item if a user copies a container, the full container tree is re created with new ids at the destination,
-          its content still refers to the same files.
+    \item if a user creates a snapshot of a container, the full container tree is re created with 
+          new ids at the destination, its content still refers to the same files.
 \end{itemize}
 
 \subsection{Findings}
@@ -382,7 +383,10 @@ Copy-on-Write.
 \fix Move last paragraph
 
 \subsubsection{Full Copy}
-\fix Maybe a short description of full copy, as opposed to copy-on-write
+Full copy or deep copy, as opposed to copy-on-write, is a copy where everything is copied directly
+and not only when an object is changed. This is easier to implement but is in most cases more
+inefficient as more disk space will have to be used and if used with for example certain tree 
+structures the part of the tree that needs to be copied will have to be traversed. 
 
 \subsubsection{Comparison of Copy-on-Write system implementations}
 \subsubsubsection{BTRFS}
@@ -502,8 +506,8 @@ The following endpoints were configured:
 \end{itemize}
 
 As can be seen several expected endpoints are missing, this is intentional as the operations missing
-can be performed in a more efficient way. Such endpoint is for example $GET
-projects/\{id\}/containers$ as all containers exist in $GET projects/\{id\}$ and the interface
+can be performed in a more efficient way. Such endpoint is for example \textit{GET 
+projects/\{id\}/containers} as all containers exist in \textit{GET projects/\{id\}} and the interface
 should present a file structure where both content and containers are shown.
 
 \subsection{Findings}
@@ -511,12 +515,19 @@ should present a file structure where both content and containers are shown.
 
 \subsubsection{Security of the system}
 \paragraph{Authorization}
+The authorization of the system is currently being handled by LDAP
+
 \paragraph{Audit logs}
 
 
 \section{JPF}
-\fix Not sure where to put this section or if it's even relevant any more, maybe skip JPF and put
-the entities under implementation -> design
+\fix Not sure where to put this section
+JPF was used to test the idea and state transitioning of the application. Its a very simplified
+version of the real system that still contains all the important Copy-on-Write core concepts and the 
+assumptions that have been made for the model. This simplified version could then be automatically
+tested for soundness. It is not a proof that the model works, but it is very exhaustive in its
+testing.
+
 \subsection{Entities}
 \begin{figure}[htp] \centering{
     \includegraphics[scale=0.8]{relation.pdf}}
@@ -604,6 +615,11 @@ loaded code:        classes=111,
 \subsection{Conclusions}
 
 \subsection{Future work}
+Full access control was not implemented according to the model described in ~\ref{sec:model}, it
+was only implemented to check whether a user should have access to the system as a whole or not, the
+implementation did not set or check any specific access rights to certain contents or containers.
+
+
 
 \newpage
 \bibliographystyle{ieeetr}
