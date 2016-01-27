@@ -121,7 +121,7 @@
 \providecommand{\keywords}[1]{\textbf{\textit{Keywords: }} #1}
 
 %}}}
-\title{\textbf{Designing a Virtual Security Layer for Cloud Content}}
+\title{\textbf{Designing a Virtual Security Management Layer for Cloud Content}}
 \author{Lukas Klingsbo}
 
 
@@ -299,8 +299,8 @@ and its system are assumed safe malicious subsystems are not considered.
 \subsection{Background}
 \subsubsection{About Uprise}
 Uprise is a company based in Uppsala, Sweden. It is an EA studio focussing on creating great gaming
-experiences, which means that they are not focussed on the actual gameplay which other EA studios
-like DICE is. 
+experiences, which means that they are mostly not focussed on the actual gameplay which other EA 
+studios like DICE is. 
 
 At the moment they are for example very involved with producing the Star Wars Battlefront game by
 making menu systems and developing the companion app, Battlefront companion.
@@ -358,7 +358,7 @@ these resources~\cite{REST}.
 \subsubsection{MongoDB}
 MongoDB is a document-oriented database which means that it does not have the concept of rows as
 normal relational databases has. Instead each entity in the database is stored as a document which
-is not fixed to a predefined table structure~\cite{MONGODB}. MongoDB lacks support for joins too
+is not fixed to a predefined table structure~\cite{MONGODB}. MongoDB lacks the support for joins to
 improve its possibility to scale, which can be a big down side to some applications containing the
 need for such logic.
 
@@ -427,7 +427,7 @@ refers to the same binary files until they are changed, which results in the cre
 \subsection{Resulting system}
 \subsubsection{Perius}
 Perius is the implementation that was done to solve the problem at hand at Uprise. Perius has a
-back-end written in Scala and a front-end written in ES6 (Javascript), but they are both
+back-end written in Scala and a front-end written in Javascript (ES6), but they are both
 interchangeable.  The back-end has a REST API running, which is how the front-end communicates with
 the back-end.
 
@@ -466,6 +466,16 @@ scale in the future it is very easy to distribute MongoDB and if needed the syst
 migrated to Reactive Mongo, which is an asynchronous and non-blocking driver for MongoDB and can
 therefore make the system scale even further~\cite{REACTIVEMONGO}.
 
+All files are also stored directly in MongoDB with the help of GridFS. GridFS chunks the files 
+according to the size limit of MongoDB objects, which is currently 4MB. The advantage of this is 
+that backups of the Perius state is easily done through a database backup, no separate files 
+needs to be backed up. Another advantage that is given by this is that you can retrieve specific 
+ranges of a file, although that advantage is not needed in the Perius implementation. The 
+disadvantage of using this approach is that when using a non-distributed database it us slower 
+to read and write to the database than reading or writing directly to the filesystem. Another 
+disadvantage is that to access the files it is needed to go through the database layer in some 
+way, instead of accessing the filesystem.
+
 \subsubsubsection{API}
 \label{sec:API}
 In this work a RESTful API was implemented and used for back-end $\Iff$ front-end
@@ -473,7 +483,7 @@ communication.
 
 REST was chosen as only basic CRUD operations needs to be performed and because the BSON format
 which is used in MongoDB is almost identical ~\cite{BSON} to the standardised JSON format which is
-used by RESTful services~\cite{JSON}. 
+usually used by RESTful services~\cite{JSON}. 
 
 \subsubsection{REST Endpoints}
 For the front-end to communicate with the back-end, a RESTful service is implemented.
@@ -512,6 +522,15 @@ should present a file structure where both content and containers are shown.
 
 \subsection{Findings}
 \subsubsection{Scalability}
+When using the ReactiveMongo driver~\cite{REACTIVEMONGO}, which is asynchronous and non-blocking, 
+the application has no limits of how much load and users it can handle as the hardware and nodes 
+can be scaled up linearly when needed. With Cashbah~\cite{CASBAH}, which is used with the current 
+implementation, it is harder to scale to the enourmous amounts of load which ReactiveMongo can 
+support as Casbah is synchronous and has blocking IO. For this work the kind of scalability which 
+is offered by ReactiveMongo is not needed as the load will not reach the peak (\fix relate to 
+graph) for what Casbah can handle on a single server. 
+
+\fix Add graphs of load testing etc
 
 \subsubsection{Security of the system}
 \paragraph{Authorization}
@@ -522,6 +541,7 @@ The authorization of the system is currently being handled by LDAP
 
 \section{JPF}
 \fix Not sure where to put this section
+
 JPF was used to test the idea and state transitioning of the application. Its a very simplified
 version of the real system that still contains all the important Copy-on-Write core concepts and the 
 assumptions that have been made for the model. This simplified version could then be automatically
