@@ -539,8 +539,7 @@ create large loads. The testing was done locally on a virtual server having 6 CP
 RAM. The results that will be analysed are latency and throughput of the server as that will give a 
 fair judgement of how well the system can perform.
 
-\paragraph{GET requests}
-\par
+\paragraph{GET requests}\mbox{}\\
 To be able to determine what is the bottleneck of the back-end three different types of \textit{GET
 requests} are performed. The first one tries to maximise the number of requests that spray-can (HTTP
 server) can handle with the given specifications and therefore the server just returns 200 (OK). The
@@ -655,12 +654,60 @@ With caching turned on, on a single back-end, the application can theoretically 
 million active users which are not posting any content, this is simulated in 
 Listing~\ref{CACHEREQUEST}.
 
-\textbf{POST requests}
+\par
+Another simple optimisation that was added was indices on the parent id's, which are heavily queried
+when building the project trees.
 
+\begin{lstlisting}[label=INDEXREQUEST,caption=Result of indexed project tree requests]
+wrk -t100 -c100 -d100s 
+  http://perius:8000/projects/56a5f...
+ 
+Running 10s test @ http://perius:8000/projects/56a...
+  100 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    47.27ms    3.03ms  86.54ms   93.79%
+    Req/Sec    21.12      3.50    60.00     87.51%
+  21271 requests in 10.10s, 9.76MB read
+Requests/sec:   2105.82
+Transfer/sec:      0.97MB
+\end{lstlisting}
 
+After adding indices, the building of the project tree was able to finish 50 times faster and the
+server was able to serve 2100 requests/s, see Listing~\ref{INDEXREQUEST}.
 
+\paragraph{POST requests}\mbox{}\\
+Two different POST requests will be tested, creation of containers and creation of content together
+with file uploads. 
 
-\fix Add graphs of load testing etc
+\begin{lstlisting}[label=CONTAINERPOSTREQUEST,caption=Result of container creation]
+wrk -c24 -t12 -d4s -s post.lua 
+  http://perius:8000/projects/56ab.../containers 
+  
+Running 4s test @ 
+  http://perius:8000/projects/56ab.../containers
+  12 threads and 24 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     5.92ms    1.25ms  19.58ms   91.67%
+    Req/Sec   339.86     76.68     1.28k    95.65%
+  16357 requests in 4.10s, 5.04MB read
+Requests/sec:   3990.12
+Transfer/sec:      1.23MB
+\end{lstlisting}
+
+As can be seen in Listing~\ref{CONTAINERPOSTREQUEST} the server can handle around 4000 container
+POST requests per second. The problem that this test resulted in was not the amount of containers
+that could be posted, but rather loading all those containers in the interface or API afterwards.
+When requesting the project that the containers were posted to the web server timed out the request,
+as it took too long for the back-end to build the project tree. In this work, the web server wont 
+be configured to accept longer data processing time, as trees as large as this for a single project
+wont be used in production.
+
+\par
+As the project tree is built by querying documents parent id one optimisation that could be done was
+to create an index of the documents parent ids. This drastically improved the size of the tree that
+the server was able to handle within the time out, going from being able to handle 4000 documents to
+at least 50000 documents, which the browser instead will have problems displaying represented in the 
+UI without lag.
 
 \subsubsection{Security of the system}
 \paragraph{Authorization}
