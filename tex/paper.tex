@@ -1,3 +1,4 @@
+
 %{{{
 \documentclass[a4paper,12pt]{article}
 \usepackage{fullpage}
@@ -86,6 +87,8 @@
 \def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
 \def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
 \def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\newenvironment{custommargins}[2]%
+  {\addtolength{\leftskip}{#1}\addtolength{\rightskip}{#2}}{\par}
 \makeatother
 
 \setcounter{secnumdepth}{4}
@@ -224,8 +227,20 @@ thoroughly checked by the CDN providers this work can focus solely on the intern
 of the management system. 
 
 \subsection{Related work}
+\fix Write about Bell-Lapadula et. al
+The model for this paper is based on the work that was done by Bell, D Elliott, LaPadula and Leonard
+J in their papers Secure computer systems: Mathematical foundations~\cite{BLP1} and Secure computer
+systems: A mathematical model~\cite{BLP2}. In these papers the foundation is laid for how to model
+a computer system to be able to analyse the security of a system. Furthermore this paper was also 
+inspired by Biba, Integrity considerations for secure computer systems~\cite{BIBA}, where many of 
+the points made by him was taken into consideration when inspecting that the integrity of the data 
+was always sound.
 
 \subsection{Approach}
+\fix Write about how the approach is similar to BLP and that it is not a proof etc
+As this work only presents an informal model of how the system is designed it can not be regarded as
+a proof for the actual implementation of the system to be flawless. The model should how ever give a 
+strong idea of the soundness of the designed system.
 
 \subsection{Elements of the Model}
 \fix Mathematical formal description of how the system works
@@ -233,10 +248,10 @@ of the management system.
 \begin{center}
     \begin{tabular}{ | l | l | l | p{5cm} |}
         \hline
-        Set & Elements & semantics \\ \hline
+        Set & Elements & Semantics \\ \hline
         C   & $c_0\dots c_n$                & Containers; folders in the virtual file system\\ \hline
         F   & $f_0\dots f_n$                & Files; files, images, videos\\ \hline
-        P   & $p_0\dots p_n$                & Content; Meta-data for files\\ \hline
+        M   & $m_0\dots m_n$                & Content; Meta-data for files\\ \hline
         U   & $u_0\dots u_n$                & Users; registered users in the system\\ \hline
         A   & $A[u_0,c_0]\dots A[u_n, c_n]$ & Access matrix; describes what containers users have access to\\ \hline
     \end{tabular}
@@ -244,14 +259,15 @@ of the management system.
 
 
 \subsection{Access rights}
-The \textit{a} notation is meant to symbolise an access token, and if \textit{a} exists in the requested enitity of
+The \textit{a} notation is meant to symbolise an access token, and if \textit{a} exists in the requested entity of
 the matrix the corresponding user to that entity has full access to the corresponding object.
 
+\fix Add content, m
 \begin{equation}
     \begin{split}
         u \in U \text{ can read } c \in C & \Iff u \in A[u,c] \\
         u \in U \text{ can write } c \in C & \Iff u \in A[u,c] \text{ and readonly } \notin c \\
-        u \in U \text{ can delete } p \in c & \Iff u \in A[u,c] \text{ and readonly } \notin c \\
+        u \in U \text{ can delete } m \in c & \Iff u \in A[u,c] \text{ and readonly } \notin c \\
         u \nexists U \text{ can delete } f \in F \\
         \forall c \in C, \quad \exists u \in U & \mid a \in A[u,c] 
     \end{split}
@@ -281,19 +297,77 @@ In this work external threats are handled as threats that can occur from what ha
 the API (See Section~\ref{sec:API} and internal threats as incorrect implementation. As the server
 and its system are assumed safe malicious subsystems are not considered.
 
+\begin{center}
+    \begin{tabular}{ | l | l | l | p{5cm} |}
+        \hline
+        Action & Semantics \\ \hline
+        u, read(o)            & User u reads object o\\ \hline
+        u, write(o)           & User u writes object o\\ \hline
+        u, copy(o)            & User u copies object o and the copy gets a new ID\\ \hline
+        u, change(o)          & User u locally changes object o \\ \hline
+        u, modify(o)          & User u globally modifies object o\\ \hline
+        u, modify(o', o)      & User u globally modifies object o based on object o'\\ \hline
+        u, delete(o)          & User u deletes object o\\ \hline
+        u, snapshot(o)        & User u takes a snapshot of object o \\ \hline
+    \end{tabular}
+\end{center}
+
+
 
 \fix Translate to mathematical expressions
+\subsubsection{Consequences of modification}
+\begin{equation} \label{eq:fileupdate}
+    \begin{split}
+        m' & = u, read(m) \land \\
+        x  & = f \in m' \land \\
+        f' & = u, change(x) \land \\
+        u, & write(f') \land \\
+        u, & modify(f', m) \Implies f \in F \land f' \in F
+    \end{split}
+\end{equation}
+If a user wants to update a file in a content, the file is copied and the original is intact.
 
-\begin{itemize}
-    \item if a user wants to update a file in a content, the file is copied and the original is intact
-    \item if a user reads content and then writes to it, the content is directly changed
-    \item if a user copies content, a new content is created at the destination with reference to the same
-          file
-    \item if a user reads from a container and then writes to it, the container is directly changed
-          (Which means last write wins, which doesn't matter)
-    \item if a user creates a snapshot of a container, the full container tree is re created with 
-          new ids at the destination, its content still refers to the same files.
-\end{itemize}
+\begin{equation} \label{eq:contentupdate}
+    \begin{split}
+        m' & = u, read(m) \land \\
+        m'' & = u, change(m') \land \\
+        m''' & = u, modify(m'', m) \Implies \\
+        m''' & \in M \land m \not \in M
+    \end{split}
+\end{equation}
+If a user reads content and then writes to it, the content is directly changed
+
+\begin{equation} \label{eq:containerupdate}
+    \begin{split}
+        c' & = u, read(c) \land \\
+        c'' & = u, change(c') \land \\
+        c''' & = u, modify(c'', c) \Implies \\
+        c''' & \in C \land c \not \in C
+    \end{split}
+\end{equation}
+If a user reads a container and then writes to it, the container is directly changed
+
+\begin{equation} \label{eq:copy}
+    \begin{split}
+        & f' = f \in m \\
+        & m' = u, copy(m) \Implies \\
+        & m' \neq m \land \\
+        & f' \in m' \land f' \in m
+    \end{split}
+\end{equation}
+If a user copies a content, the new content is not equals the old (because of its new ID), however
+they both refer to the same file.
+
+\begin{equation} \label{eq:snapshot}
+    \begin{split}
+        s = u, snapshot(c') \Implies \\
+        \forall c \in c', u, copy(c) \in s \land \\
+        \forall m \in c', u, copy(m) \in s \land \\
+        (\forall f \in c' \Implies f \in s)
+    \end{split}
+\end{equation}
+If a user creates a snapshot of a container the full container tree is re-created with new ids and
+its content still refers to the same files.
 
 \subsection{Findings}
 
@@ -523,23 +597,15 @@ can be performed in a more efficient way. Such endpoint is for example \textit{G
 projects/\{id\}/containers} as all containers exist in \textit{GET projects/\{id\}} and the interface
 should present a file structure where both content and containers are shown.
 
-\subsection{Findings}
-\subsubsection{Scalability}
-When using the ReactiveMongo driver~\cite{REACTIVEMONGO}, which is asynchronous and non-blocking, 
-the application has no limits of how much load and users it can handle as the hardware and nodes 
-can be scaled up linearly when needed. With Cashbah~\cite{CASBAH}, which is used with the current 
-implementation, it is harder to scale to the enormous amounts of load which ReactiveMongo can 
-support as Casbah is synchronous and has blocking IO. For this work the kind of scalability which 
-is offered by ReactiveMongo is not needed as the load will not reach the peak (\fix relate to 
-graph) for what Casbah can handle on a single server. 
-
-\subsubsubsection{Load Testing}
+\newpage
+\subsection{Load Testing}
 Wrk was used to load test the back-end. It is a multi-threaded benchmarking tool for HTTP which can
 create large loads. The testing was done locally on a virtual server having 6 CPU cores and 48GB of
 RAM. The results that will be analysed are latency and throughput of the server as that will give a 
 fair judgement of how well the system can perform.
 
-\paragraph{GET requests}\mbox{}\\
+\subsubsection{GET requests}
+\label{sec:GET_REQUESTS}
 To be able to determine what is the bottleneck of the back-end three different types of \textit{GET
 requests} are performed. The first one tries to maximise the number of requests that spray-can (HTTP
 server) can handle with the given specifications and therefore the server just returns 200 (OK). The
@@ -555,6 +621,7 @@ wrk -t100 -c100 -d10s http://perius:8000/ok
 where -t100 means that it uses 100 threads, -c100 that it emulates 100 clients requesting over and
 over and -d100s is the amount of time that the load test will run, in this case 100 seconds.
 
+\begin{minipage}{\linewidth-1cm}
 \begin{lstlisting}[label=OKREQUEST,caption=Result of OK requests]
 wrk -t100 -c100 -d10s http://perius:8000/ok
 
@@ -567,8 +634,10 @@ Running 2m test @ http://perius:8000/ok
 Requests/sec: 103353.85
 Transfer/sec:     17.25MB
 \end{lstlisting}
+\end{minipage}
 
-
+\begin{custommargins}{0cm}{-2cm}
+\begin{minipage}{\linewidth-1cm}
 \begin{lstlisting}[label=DBREQUEST,caption=Result of MongoDB requests]
 wrk -t100 -c100 -d10s http://perius:8000/projects
 
@@ -581,7 +650,9 @@ Running 2m test @ http://perius:8000/projects
 Requests/sec:   7256.38
 Transfer/sec:      1.96MB
 \end{lstlisting}
+\end{minipage}
 
+\begin{minipage}{\linewidth-1cm}
 \begin{lstlisting}[label=STATICREQUEST,caption=Result of static text requests]
 wrk -t100 -c100 -d10s http://perius:8000/static
 
@@ -594,6 +665,7 @@ Running 2m test @ http://perius:8000/static
 Requests/sec:  91902.48
 Transfer/sec:     22.44MB
 \end{lstlisting}
+\end{minipage}
 
 Listing~\ref{OKREQUEST} shows that the HTTP server can answer about 100K requests/s when not
 involving any payload other than status code 200 (OK). When comparing that to the request which
@@ -611,7 +683,9 @@ request that system is receiving is requests of a full project tree. This reques
 expensive as the tree is not stored directly in the database but has to be built from the id and
 parent id of each container and content, a simulated project tree of similar size to the ones stored 
 in the current management system reaches around 25KB in uncompressed size.
+\end{custommargins}
 
+\begin{minipage}{\linewidth-1cm}
 \begin{lstlisting}[label=TREEREQUEST,caption=Result of project tree requests]
 wrk -t10 -c10 -d10s http://perius:8000/projects/56a5f...
  
@@ -624,6 +698,7 @@ Running 10s test @ http://perius:8000/projects/56a5f...
 Requests/sec:     39.82
 Transfer/sec:      0.96MB
 \end{lstlisting}
+\end{minipage}
 
 The result in Listing~\ref{TREEREQUEST} shows an average of 40 requests/s, which means this is the
 real bottleneck in the application. There are two solutions to fix this bottleneck, as the project
@@ -635,6 +710,7 @@ though this massive bottleneck is present, it wont be a problem in a small scale
 environment as the tree is fetched approximately once every 30 seconds by active users, which means
 that the application still could support at least 1200 very active users.
 
+\begin{minipage}{\linewidth-1cm}
 \begin{lstlisting}[label=CACHEREQUEST,caption=Result of cached project tree requests]
 wrk -t100 -c100 -d100s 
   http://perius:8000/projects/cached/56a5f...
@@ -649,6 +725,8 @@ Running 2m test @
 Requests/sec:  83352.77
 Transfer/sec:    174.17MB
 \end{lstlisting}
+\end{minipage}
+
 \par
 With caching turned on, on a single back-end, the application can theoretically support several 
 million active users which are not posting any content, this is simulated in 
@@ -658,6 +736,7 @@ Listing~\ref{CACHEREQUEST}.
 Another simple optimisation that was added was indices on the parent id's, which are heavily queried
 when building the project trees.
 
+\begin{minipage}{\linewidth-1cm}
 \begin{lstlisting}[label=INDEXREQUEST,caption=Result of indexed project tree requests]
 wrk -t100 -c100 -d100s 
   http://perius:8000/projects/56a5f...
@@ -671,14 +750,16 @@ Running 10s test @ http://perius:8000/projects/56a...
 Requests/sec:   2105.82
 Transfer/sec:      0.97MB
 \end{lstlisting}
+\end{minipage}
 
 After adding indices, the building of the project tree was able to finish 50 times faster and the
 server was able to serve 2100 requests/s, see Listing~\ref{INDEXREQUEST}.
 
-\paragraph{POST requests}\mbox{}\\
+\subsubsection{POST requests}
 Two different POST requests will be tested, creation of containers and creation of content together
 with file uploads. 
 
+\begin{minipage}{\linewidth-1cm}
 \begin{lstlisting}[label=CONTAINERPOSTREQUEST,caption=Result of container creation]
 wrk -c24 -t12 -d4s -s post.lua 
   http://perius:8000/projects/56ab.../containers 
@@ -693,6 +774,7 @@ Running 4s test @
 Requests/sec:   3990.12
 Transfer/sec:      1.23MB
 \end{lstlisting}
+\end{minipage}
 
 As can be seen in Listing~\ref{CONTAINERPOSTREQUEST} the server can handle around 4000 container
 POST requests per second. The problem that this test resulted in was not the amount of containers
@@ -706,8 +788,19 @@ wont be used in production.
 As the project tree is built by querying documents parent id one optimisation that could be done was
 to create an index of the documents parent ids. This drastically improved the size of the tree that
 the server was able to handle within the time out, going from being able to handle 4000 documents to
-at least 50000 documents, which the browser instead will have problems displaying represented in the 
-UI without lag.
+at least 50000 documents, which the browser instead will have problems displaying, represented in the 
+UI, without lag.
+
+
+\subsection{Findings}
+\subsubsection{Scalability}
+When using the ReactiveMongo driver~\cite{REACTIVEMONGO}, which is asynchronous and non-blocking, 
+the application has no limits of how much load and users it can handle as the hardware and nodes 
+can be scaled up linearly when needed. With Cashbah~\cite{CASBAH}, which is used with the current 
+implementation, it is harder to scale to the enormous amounts of load which ReactiveMongo can 
+support as Casbah is synchronous and has blocking IO. For this work the kind of scalability which 
+is offered by ReactiveMongo is not needed as the load will not reach the peak, as discussed in 
+Section~\ref{sec:GET_REQUESTS}, for what Casbah can handle on a single server. 
 
 \subsubsection{Security of the system}
 \paragraph{Authorization}
