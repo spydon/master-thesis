@@ -173,6 +173,14 @@ The research question that this report answers is how and whether it is practica
 Copy-on-Write for a high-level system like the one that is implemented. 
 
 \fix Clarify problem definition and research questions
+\section{Background}
+\subsection{About Uprise}
+Uprise is a company based in Uppsala, Sweden. It is an EA studio focussing on creating great gaming
+experiences, which means that they are mostly not focussed on the actual gameplay which other EA 
+studios like DICE is. 
+
+At the moment they are for example very involved with producing the Star Wars Battlefront game by
+making menu systems and developing the companion app, Battlefront companion.
 
 \subsection{Prior Work}
 \subsubsection{Copy-on-Write}
@@ -237,13 +245,12 @@ was always sound.
 
 \subsection{Approach}
 \fix Write about how the approach is similar to BLP and that it is not a proof etc
+
 As this work only presents an informal model of how the system is designed it can not be regarded as
 a proof for the actual implementation of the system to be flawless. The model should how ever give a 
 strong idea of the soundness of the designed system.
 
 \subsection{Elements of the Model}
-\fix Mathematical formal description of how the system works
-
 \begin{center}
     \begin{tabular}{ | l | l | l | p{5cm} |}
         \hline
@@ -261,7 +268,6 @@ strong idea of the soundness of the designed system.
 The \textit{a} notation is meant to symbolise an access token, and if \textit{a} exists in the requested entity of
 the matrix the corresponding user to that entity has full access to the corresponding object.
 
-\fix Add content, m
 \begin{equation}
     \begin{split}
         u \in U \text{ can read } c \in C & \Iff u \in A[u,c] \\
@@ -298,7 +304,9 @@ In this work external threats are handled as threats that can occur from what ha
 the API (See Section~\ref{sec:API} and internal threats as incorrect implementation. As the server
 and its system are assumed safe malicious subsystems are not considered.
 
+\label{sec:conseq}
 \subsection{Consequences of modification}
+
 \begin{center}
     \begin{tabular}{ | l | l | l | p{5cm} |}
         \hline
@@ -332,7 +340,7 @@ If a user wants to update a file in a content, the file is copied and the origin
         m''' & \in M \land m \not \in M
     \end{split}
 \end{equation}
-If a user reads content and then writes to it, the content is directly changed
+If a user reads content and then writes to it, the content is directly changed.
 
 \begin{equation} \label{eq:containerupdate}
     \begin{split}
@@ -342,7 +350,7 @@ If a user reads content and then writes to it, the content is directly changed
         c''' & \in C \land c \not \in C
     \end{split}
 \end{equation}
-If a user reads a container and then writes to it, the container is directly changed
+If a user reads a container and then writes to it, the container is directly changed.
 
 \begin{equation} \label{eq:copy}
     \begin{split}
@@ -378,7 +386,7 @@ If a user deletes content, the file referred to in the content is not deleted.
 \subsection{Interaction of Multiple Accesses}
 \fix Rename consequence?
 
-As a result of consequence~\ref{eq:contentupdate} and ~\ref{eq:containerupdate} there can be race
+As a result of consequence~\ref{eq:contentupdate} and~\ref{eq:containerupdate} there can be race
 conditions where the last write wins. This could be solved by locks or transactions, but as updates
 are not based on each other, the trade-off for this inconsistency to scalability and speed is
 intentional. However as can also be seen in consequence~\ref{eq:fileupdate}, if a file is
@@ -391,19 +399,17 @@ to and also make it possible to check this number and delete the file in an atom
 easier approach would be to have a garbage collector which locks parts of the system momentarily
 meanwhile it removes files which are not referenced.
 
+There is also the chance to have content and containers that are not referenced from anywhere and
+result in being garbage in the system. This could happen as a result of consequence~\ref{eq:delete}
+in combination with any of the other consequences listed in Section~\ref{sec:conseq}. The basic idea
+is that an entity is deleted meanwhile another is created or modified to have that entity as its
+parent and thus creating a separate tree that can not be reached from the root node of the project.
+
 \subsection{Findings}
 
 \newpage
 \section{Implementation}
 \subsection{Background}
-\subsubsection{About Uprise}
-Uprise is a company based in Uppsala, Sweden. It is an EA studio focussing on creating great gaming
-experiences, which means that they are mostly not focussed on the actual gameplay which other EA 
-studios like DICE is. 
-
-At the moment they are for example very involved with producing the Star Wars Battlefront game by
-making menu systems and developing the companion app, Battlefront companion.
-
 \subsubsection{The current system}
 Today a system called battlebinary~\cite{BATTLEBINARY} is used for managing and uploading files,
 mostly images, to content delivery networks. The current system does not make use out of the
@@ -807,11 +813,11 @@ be configured to accept longer data processing time, as trees as large as this f
 wont be used in production.
 
 \par
-As the project tree is built by querying documents parent id one optimisation that could be done was
+As the project tree is built by querying documents parent id an optimisation that could be done was
 to create an index of the documents parent ids. This drastically improved the size of the tree that
-the server was able to handle within the time out, going from being able to handle 4000 documents to
-at least 50000 documents, which the browser instead will have problems displaying, represented in the 
-UI, without lag.
+the server was able to handle within the time out, going from being able to handle 4000 documents in 
+one tree to at least 50000 documents, which the browser instead will have problems displaying, 
+represented in the UI, without lag.
 
 
 \subsection{Findings}
@@ -825,14 +831,24 @@ is offered by ReactiveMongo is not needed as the load will not reach the peak, a
 Section~\ref{sec:GET_REQUESTS}, for what Casbah can handle on a single server. 
 
 \subsubsection{Security of the system}
-\paragraph{Authorization}
-The authorization of users in the system is currently being handled by LDAP~\cite{LDAP}, as Perius is mainly
-focussed at being deployed in internal networks which usually has an LDAP service enabled. LDAP also
-makes it easier for the user to login as no separate account is needed for Perius and thus the user
-can use the same account as for all the LDAP connected services on the internal network.
+\subsubsubsection{Authorization}
+The authorization of users in the system is currently being handled by LDAP~\cite{LDAP}, as Perius 
+is mainly focussed at being deployed in internal networks which usually has an LDAP service enabled. 
+LDAP also makes it easier for the user to login as no separate account is needed for Perius and 
+thus the user can use the same account as for all the LDAP connected services on the internal 
+network.
 
-\paragraph{Audit logs}
+\subsubsubsection{Audit logs}
 
+\subsubsubsection{CDN Connections}
+\fix Describe how the CDN connections are encrypted and secure.
+
+When uploading files to the CDN networks their TLS/SSL protected API's are used to ensure that no
+data leaks through packet sniffing etc. The files are grouped corresponding to their parent
+containers in Perius, which makes it possible to handle the security settings for all files in a
+group at once, without having to traverse through the tree in Perius.
+
+\fix Describe the different CDN mechanisms, like signed cookies and urls
 
 \section{JPF}
 \fix Not sure where to put this section
