@@ -180,12 +180,12 @@ This work relies heavily on the Copy-on-Write principle, which was founded and u
 kernel~\cite{COPYONWRITE}, as it can be used to efficiently create snapshots and help solving
 concurrency problems that otherwise can occur.
 
-Copy-on-Write is used in for example virtual memory management systems~\cite{VIRTCOW}, for snapshot
-and as an optimisation technique for objects and types in several programming
+Copy-on-Write is used in for example virtual memory management systems~\cite{VIRTCOW}, snapshot
+algorithms and as an optimisation technique for objects and types in several programming
 languages\cite{LANGCOW}.
 
 Its principle is that when processes or nodes share data in between each other, the data is not
-copied until one of the processes does changes to it. This is an optimisation as the processes does
+copied until one of the processes makes changes to it. This is an optimisation as the processes does
 not have to send or copy all of the related data that is in memory, rather they only have to send
 pointers to the data. After many Copy-on-Write's a complex tree structure can be built up, but
 optimisations can be done to simplify that structure~\cite{COPYONWRITE2}.
@@ -209,10 +209,10 @@ requester.
 \subsubsection{Snapshot}
 A snapshot is a way to record the full state of a system at a specific time. The term comes from
 photography where a photo can be seen as the state of what the photo is of, at a certain time.
-Snapshots should not be confused with full copies of a system as full copies can be used as backups
-meanwhile snapshots are not very effective means of backups in the case of data corruption. It is
-not effective against data corruption as snapshots usually still refer to unchanged data that is
-still a part of the system~\cite{SNAPSHOT}.
+Snapshots should not be confused with a full copy of a system, or part of a system, as full copies 
+can be used as backups meanwhile snapshots are not very effective means of backup in the case of 
+data corruption. It is not effective against data corruption as snapshots usually still refer to 
+unchanged data that is still a part of the system~\cite{SNAPSHOT}.
 
 \newpage 
 
@@ -221,16 +221,15 @@ still a part of the system~\cite{SNAPSHOT}.
 The model for this work should show how the data can not be accessed or modified by unauthorized
 users and how the integrity of the data is always kept in the Perius system. 
 
-There could also be another relevant model done to show that content can not be accessed by
-unauthorized viewers once the content is uploaded to a CDN, but as that should already have been
-thoroughly checked by the CDN providers this work can focus solely on the internal users and content
-of the management system. 
+There could also be another relevant part included in the model, to show that content can not be 
+accessed by unauthorized viewers once the content is uploaded to a CDN. But as that should already 
+have been thoroughly checked by the CDN providers this work can focus solely on the internal users 
+and content of the management system. 
 
 \subsection{Related work}
-\fix Write about Bell-Lapadula et. al
 The model for this paper is based on the work that was done by Bell, D Elliott, LaPadula and Leonard
 J in their papers Secure computer systems: Mathematical foundations~\cite{BLP1} and Secure computer
-systems: A mathematical model~\cite{BLP2}. In these papers the foundation is laid for how to model
+systems: A mathematical model~\cite{BLP2}. In these papers the foundation was laid for how to model
 a computer system to be able to analyse the security of a system. Furthermore this paper was also 
 inspired by Biba, Integrity considerations for secure computer systems~\cite{BIBA}, where many of 
 the points made by him was taken into consideration when inspecting that the integrity of the data 
@@ -248,7 +247,7 @@ strong idea of the soundness of the designed system.
 \begin{center}
     \begin{tabular}{ | l | l | l | p{5cm} |}
         \hline
-        Set & Elements & Semantics \\ \hline
+        \textbf{Set} & \textbf{Elements} & \textbf{Semantics} \\ \hline
         C   & $c_0\dots c_n$                & Containers; folders in the virtual file system\\ \hline
         F   & $f_0\dots f_n$                & Files; files, images, videos\\ \hline
         M   & $m_0\dots m_n$                & Content; Meta-data for files\\ \hline
@@ -272,6 +271,8 @@ the matrix the corresponding user to that entity has full access to the correspo
         \forall c \in C, \quad \exists u \in U & \mid a \in A[u,c] 
     \end{split}
 \end{equation}
+
+% The last one means that no users can delete actual files
 
 \subsection{Data integrity}
 A computer system or subsystem is defined as possessing the property of integrity if it behaves consistently
@@ -297,25 +298,21 @@ In this work external threats are handled as threats that can occur from what ha
 the API (See Section~\ref{sec:API} and internal threats as incorrect implementation. As the server
 and its system are assumed safe malicious subsystems are not considered.
 
+\subsection{Consequences of modification}
 \begin{center}
     \begin{tabular}{ | l | l | l | p{5cm} |}
         \hline
-        Action & Semantics \\ \hline
+        \textbf{Action} & \textbf{Semantics} \\ \hline
         u, read(o)            & User u reads object o\\ \hline
         u, write(o)           & User u writes object o\\ \hline
         u, copy(o)            & User u copies object o and the copy gets a new ID\\ \hline
         u, change(o)          & User u locally changes object o \\ \hline
-        u, modify(o)          & User u globally modifies object o\\ \hline
         u, modify(o', o)      & User u globally modifies object o based on object o'\\ \hline
         u, delete(o)          & User u deletes object o\\ \hline
         u, snapshot(o)        & User u takes a snapshot of object o \\ \hline
     \end{tabular}
 \end{center}
 
-
-
-\fix Translate to mathematical expressions
-\subsubsection{Consequences of modification}
 \begin{equation} \label{eq:fileupdate}
     \begin{split}
         m' & = u, read(m) \land \\
@@ -368,6 +365,31 @@ they both refer to the same file.
 \end{equation}
 If a user creates a snapshot of a container the full container tree is re-created with new ids and
 its content still refers to the same files.
+
+\begin{equation} \label{eq:delete}
+    \begin{split}
+        f' = f \in (u, read(c)),  \\
+        u, delete(c) \Implies \\
+        c \not \in C \land f' \in F
+    \end{split}
+\end{equation}
+If a user deletes content, the file referred to in the content is not deleted.
+
+\subsection{Interaction of Multiple Accesses}
+\fix Rename consequence?
+
+As a result of consequence~\ref{eq:contentupdate} and ~\ref{eq:containerupdate} there can be race
+conditions where the last write wins. This could be solved by locks or transactions, but as updates
+are not based on each other, the trade-off for this inconsistency to scalability and speed is
+intentional. However as can also be seen in consequence~\ref{eq:fileupdate}, if a file is
+removed from a content that file is not removed from the set of files, even though its modification
+process is not the last one to write to the content. This is necessary as a file can be referenced
+from several content and the removal process can not atomically ensure that the file is not referred
+to by another content. This results in a lot of files in the system which are not referenced from
+anywhere. This can be solved by either making each file keep track of how many times it is referred
+to and also make it possible to check this number and delete the file in an atomic fashion. An
+easier approach would be to have a garbage collector which locks parts of the system momentarily
+meanwhile it removes files which are not referenced.
 
 \subsection{Findings}
 
