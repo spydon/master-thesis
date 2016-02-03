@@ -410,7 +410,7 @@ parent and thus creating a separate tree that can not be reached from the root n
 \newpage
 \section{Implementation}
 \subsection{Background}
-\subsubsection{The current system}
+\subsubsection{The current system} \label{sec:current_system}
 Today a system called battlebinary~\cite{BATTLEBINARY} is used for managing and uploading files,
 mostly images, to content delivery networks. The current system does not make use out of the
 security features that the CDN's are offering, instead it uses a form of security by obscurity. When
@@ -819,6 +819,42 @@ the server was able to handle within the time out, going from being able to hand
 one tree to at least 50000 documents, which the browser instead will have problems displaying, 
 represented in the UI, without lag.
 
+\subsection{Security of the system}
+\subsubsection{Authorization}
+The authorization of users in the system is currently being handled by LDAP~\cite{LDAP}, as Perius 
+is mainly focussed at being deployed in internal networks which usually has an LDAP service enabled. 
+LDAP also makes it easier for the user to login as no separate account is needed for Perius and 
+thus the user can use the same account as for all the LDAP connected services on the internal 
+network.
+
+\subsubsection{Audit logs}
+
+\subsubsection{CDN Connections}
+\fix Describe how the CDN connections are encrypted and secure.
+
+When uploading files to the CDN networks, their TLS/SSL protected API's are used to ensure that no
+data leaks through packet sniffing etc. The files are grouped corresponding to their parent
+containers in Perius, which makes it possible to handle the security settings for all files in a
+group at once, without having to traverse through the tree in Perius.
+
+\subsubsubsection{Serving private content}
+\fix Describe the different CDN mechanisms, like signed cookies and urls
+
+There are three different ways, that this implementation make use of, to make sure that 
+the CDNs serve content in a private manner. The first two is signed URLs and signed cookies, and 
+the third is a mixture between one of the first two together with a range of IP
+addresses.~\cite{AWSPRIVATE} 
+These mechanisms are needed, as explained in Section~\ref{sec:current_system}, to ensure that
+assets are not leaked if an attacker manages to find out the URL for the asset.
+
+\par \textbf{Signed URLs} \\
+test test
+
+\par \textbf{Signed cookies} \\
+test test
+
+\par \textbf{IP range restriction} \\
+test test
 
 \subsection{Findings}
 \subsubsection{Scalability}
@@ -829,26 +865,6 @@ implementation, it is harder to scale to the enormous amounts of load which Reac
 support as Casbah is synchronous and has blocking IO. For this work the kind of scalability which 
 is offered by ReactiveMongo is not needed as the load will not reach the peak, as discussed in 
 Section~\ref{sec:GET_REQUESTS}, for what Casbah can handle on a single server. 
-
-\subsubsection{Security of the system}
-\subsubsubsection{Authorization}
-The authorization of users in the system is currently being handled by LDAP~\cite{LDAP}, as Perius 
-is mainly focussed at being deployed in internal networks which usually has an LDAP service enabled. 
-LDAP also makes it easier for the user to login as no separate account is needed for Perius and 
-thus the user can use the same account as for all the LDAP connected services on the internal 
-network.
-
-\subsubsubsection{Audit logs}
-
-\subsubsubsection{CDN Connections}
-\fix Describe how the CDN connections are encrypted and secure.
-
-When uploading files to the CDN networks their TLS/SSL protected API's are used to ensure that no
-data leaks through packet sniffing etc. The files are grouped corresponding to their parent
-containers in Perius, which makes it possible to handle the security settings for all files in a
-group at once, without having to traverse through the tree in Perius.
-
-\fix Describe the different CDN mechanisms, like signed cookies and urls
 
 \section{JPF}
 \fix Not sure where to put this section
