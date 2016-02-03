@@ -144,7 +144,7 @@
 
 %}}}
 \begin{abstract}
-    \fix Abstract
+    \fix Abstract is written last
 
 \keywords{}
 \end{abstract}
@@ -166,13 +166,14 @@ Network to be able to scale to a large user base. The commercial Content Distrib
 usually fairly easy to use, the content that is to be used in a project is usually simply uploaded
 and then distributed over the globe when the public requests it. For secret content this can be a
 problem and an inconvenience, and that is what this thesis is about. This work examines ways of
-enforcing virtual access control on content and groups of content, in the form of folders and
+enforcing virtual access control on content and groups of content, in the form of containers and
 snapshots. A system was developed to make the underlying theory work in practice. 
 
 The research question that this report answers is how and whether it is practically feasible to use
 Copy-on-Write for a high-level system like the one that is implemented. 
 
 \fix Clarify problem definition and research questions
+\newpage
 \section{Background}
 \subsection{About Uprise}
 Uprise is a company based in Uppsala, Sweden. It is an EA studio focussing on creating great gaming
@@ -222,8 +223,7 @@ can be used as backups meanwhile snapshots are not very effective means of backu
 data corruption. It is not effective against data corruption as snapshots usually still refer to 
 unchanged data that is still a part of the system~\cite{SNAPSHOT}.
 
-\newpage 
-
+\newpage
 \label{sec:model}
 \section{Model}
 The model for this work should show how the data can not be accessed or modified by unauthorized
@@ -248,7 +248,7 @@ was always sound.
 
 As this work only presents an informal model of how the system is designed it can not be regarded as
 a proof for the actual implementation of the system to be flawless. The model should how ever give a 
-strong idea of the soundness of the designed system.
+strong idea of the soundness of the design of the system.
 
 \subsection{Elements of the Model}
 \begin{center}
@@ -304,8 +304,7 @@ In this work external threats are handled as threats that can occur from what ha
 the API (See Section~\ref{sec:API} and internal threats as incorrect implementation. As the server
 and its system are assumed safe malicious subsystems are not considered.
 
-\label{sec:conseq}
-\subsection{Consequences of modification}
+\subsection{Consequences of modification} \label{sec:conseq}
 
 \begin{center}
     \begin{tabular}{ | l | l | l | p{5cm} |}
@@ -383,9 +382,9 @@ its content still refers to the same files.
 \end{equation}
 If a user deletes content, the file referred to in the content is not deleted.
 
-\subsection{Interaction of Multiple Accesses}
+\subsection{Interaction of Multiple Accesses} \label{sec:multiple_access}
 \fix Rename consequence?
-
+\\
 As a result of consequence~\ref{eq:contentupdate} and~\ref{eq:containerupdate} there can be race
 conditions where the last write wins. This could be solved by locks or transactions, but as updates
 are not based on each other, the trade-off for this inconsistency to scalability and speed is
@@ -398,14 +397,21 @@ anywhere. This can be solved by either making each file keep track of how many t
 to and also make it possible to check this number and delete the file in an atomic fashion. An
 easier approach would be to have a garbage collector which locks parts of the system momentarily
 meanwhile it removes files which are not referenced.
-
+\\
 There is also the chance to have content and containers that are not referenced from anywhere and
 result in being garbage in the system. This could happen as a result of consequence~\ref{eq:delete}
 in combination with any of the other consequences listed in Section~\ref{sec:conseq}. The basic idea
 is that an entity is deleted meanwhile another is created or modified to have that entity as its
 parent and thus creating a separate tree that can not be reached from the root node of the project.
+These type of inconveniences should also be cleaned up by the garbage collector.
 
 \subsection{Findings}
+\fix Add more findings
+\subsubsection{Garbage Collection}
+For the system to reach the decided eventual consistency~\cite{KLINGSBO}, garbage collection will be
+needed. As of the conclusion in Section~\ref{sec:multiple_access} from Section ~\ref{sec:conseq} 
+there will be objects in the system that can not be reached and should therefore be cleaned up for 
+them not to cause negative performance effects on the system.
 
 \newpage
 \section{Implementation}
@@ -838,23 +844,34 @@ containers in Perius, which makes it possible to handle the security settings fo
 group at once, without having to traverse through the tree in Perius.
 
 \subsubsubsection{Serving private content}
-\fix Describe the different CDN mechanisms, like signed cookies and urls
-
 There are three different ways, that this implementation make use of, to make sure that 
-the CDNs serve content in a private manner. The first two is signed URLs and signed cookies, and 
+the CDNs serve content in a private manner. The first two are signed URLs and signed cookies, and 
 the third is a mixture between one of the first two together with a range of IP
 addresses.~\cite{AWSPRIVATE} 
 These mechanisms are needed, as explained in Section~\ref{sec:current_system}, to ensure that
 assets are not leaked if an attacker manages to find out the URL for the asset.
 
 \par \textbf{Signed URLs} \\
-test test
+Signed URLs work by writing a policy statement that specifies the restrictions that should apply for
+the asset the URL is referring to. There are two different types of these policies; canned and
+custom. In the canned policy there is only an option to specify the date for when the URL is no 
+longer valid. In the custom policy it is possible to also specify the date when the asset should be
+made available, ranges of IP addresses (which is discussed more in a later paragraph) and inclusion
+of the base64 version of the policy in the URL~\cite{AWSSIGNED}. For custom policies it is also 
+possible to reuse the policy and have it refer to multiple assets.\\
 
 \par \textbf{Signed cookies} \\
-test test
+Signed cookies work very similarly to signed URLs, the same type of canned and custom policies can
+be set, except for the policy to include the base64 version of the policy in the URL. Signed cookies
+are to be used when the URL should remain static even though the policies change~\cite{AWSCOOKIES}.
+\\
 
 \par \textbf{IP range restriction} \\
-test test
+The IP range restriction is presented as a third option in Perius, even though it in fact is just a
+part of a Signed Cookie or URL policy. The IP range restriction makes it possible to restrict which
+IP addresses that can access the asset, this option can be fitting when for example an office or
+companies internet access is based on a set of public static IP addresses and thus restricts the
+content from ever being accessed outside of that controlled network.
 
 \subsection{Findings}
 \subsubsection{Scalability}
@@ -866,6 +883,10 @@ support as Casbah is synchronous and has blocking IO. For this work the kind of 
 is offered by ReactiveMongo is not needed as the load will not reach the peak, as discussed in 
 Section~\ref{sec:GET_REQUESTS}, for what Casbah can handle on a single server. 
 
+\subsubsection{Security}
+\fix Write what security implications that can be seen
+
+\newpage
 \section{JPF}
 \fix Not sure where to put this section
 
@@ -956,17 +977,32 @@ loaded code:        classes=111,
 \end{lstlisting}
 
 
+\newpage
 \section{Discussion}
+\subsection{Persistent Storage}
+More research could have been done in the choosing of persistent storage, as mentioned in ``NoSQL:
+Moving from MapReduce Batch Jobs to Event-Driven Data Collection''~\cite{KLINGSBO} many applications
+that choose NoSQL databases as their persistent storage actually don't need it. This is most likely
+true for Perius too, it would have been efficient enough generating the project trees from an
+indexed SQL database with foreign keys. On the other hand it was quite nice having the BSON
+documents for insertion as they were so similar the accepted JSON format from the REST service.
+As Perius most common operations involve modifying the project tree, a graph database should have 
+been researched too.
 
+\newpage
 \section{Summary}
 \subsection{Conclusions}
 
 \subsection{Future work}
+\subsubsection{Access Control}
 Full access control was not implemented according to the model described in ~\ref{sec:model}, it
 was only implemented to check whether a user should have access to the system as a whole or not, the
 implementation did not set or check any specific access rights to certain contents or containers.
 
-
+\subsubsection{Front-end Refactor}
+The application could be made substantially more efficient by rewriting the front-end to update
+itself according to the REST response after a modification of the project tree, instead of 
+re-fetching the full project tree every time a change is made.
 
 \newpage
 \bibliographystyle{ieeetr}
