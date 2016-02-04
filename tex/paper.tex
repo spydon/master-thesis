@@ -161,8 +161,8 @@
 
 %}}}
 \section{Introduction}
-Developing larger projects containing static content usually involves using a Content Distribution
-Network to be able to scale to a large user base. The commercial Content Distribution Networks are
+Developing large projects containing static content usually involves using a Content Distribution
+Network to be able to scale to a larger user base. The commercial Content Distribution Networks are
 usually fairly easy to use, the content that is to be used in a project is usually simply uploaded
 and then distributed over the globe when the public requests it. For secret content this can be a
 problem and an inconvenience, and that is what this thesis is about. This work examines ways of
@@ -176,12 +176,10 @@ Copy-on-Write for a high-level system like the one that is implemented.
 \newpage
 \section{Background}
 \subsection{About Uprise}
-Uprise is a company based in Uppsala, Sweden. It is an EA studio focussing on creating great gaming
-experiences, which means that they are mostly not focussed on the actual gameplay which other EA 
-studios like DICE is. 
-
-At the moment they are for example very involved with producing the Star Wars Battlefront game by
-making menu systems and developing the companion app, Battlefront companion.
+Uprise (formerly known as ESN) is a company based in Uppsala, Sweden. It is an EA studio focussing 
+on creating great gaming experiences, which means that they are mostly not focussed on the actual 
+gameplay which other EA studios like DICE is. Currently Uprise has a lot of focus on developing 
+companion apps and a new form of menu systems.
 
 \subsection{Prior Work}
 \subsubsection{Copy-on-Write}
@@ -249,6 +247,10 @@ was always sound.
 As this work only presents an informal model of how the system is designed it can not be regarded as
 a proof for the actual implementation of the system to be flawless. The model should how ever give a 
 strong idea of the soundness of the design of the system.
+
+The copy-on-write system is only used for files as all of the other objects in the system is
+basically just meta data and not classed as important, from an data integrity point of view, as the 
+actual files themselves. 
 
 \subsection{Elements of the Model}
 \begin{center}
@@ -581,11 +583,15 @@ All files are also stored directly in MongoDB with the help of GridFS. GridFS ch
 according to the size limit of MongoDB objects, which is currently 4MB. The advantage of this is 
 that backups of the Perius state is easily done through a database backup, no separate files 
 needs to be backed up. Another advantage that is given by this is that you can retrieve specific 
-ranges of a file, although that advantage is not needed in the Perius implementation. The 
-disadvantage of using this approach is that when using a non-distributed database it us slower 
-to read and write to the database than reading or writing directly to the filesystem. Another 
-disadvantage is that to access the files it is needed to go through the database layer in some 
-way, instead of accessing the filesystem.
+ranges of a file, although that advantage is not needed in the Perius implementation. For
+scalability this could be used to retrieve different parts of a file from different servers, 
+normal load balancing would probably work better in a system like Perius where no extremely large 
+files are expected to be stored. 
+
+The disadvantage of using the GridFS approach is that when using a non-distributed database 
+it is slower to read and write to the database than reading or writing directly to the filesystem. 
+Another disadvantage is that to access the files it is needed to go through the database layer 
+in some way, instead of accessing the filesystem.
 
 \subsubsection{API}
 \label{sec:API}
