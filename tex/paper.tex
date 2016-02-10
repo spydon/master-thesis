@@ -124,7 +124,7 @@
 \providecommand{\keywords}[1]{\textbf{\textit{Keywords: }} #1}
 
 %}}}
-\title{\textbf{Designing a Virtual Security Management Layer for Cloud Content}}
+\title{\textbf{Designing a Security Management Layer for CDN Assets}}
 \author{Lukas Klingsbo}
 
 
@@ -169,8 +169,9 @@ problem and an inconvenience, and that is what this thesis is about. This work e
 enforcing virtual access control on content and groups of content, in the form of containers and
 snapshots. A system was developed to make the underlying theory work in practice. 
 
-The research question that this report answers is how and whether it is practically feasible to use
-Copy-on-Write for a high-level system like the one that is implemented. 
+The research question that this report tries to answers is how and whether it is practically 
+feasible to use Copy-on-Write for a high-level system like the one that is implemented and how 
+it can effect the systems scalability. 
 
 \fix Clarify problem definition and research questions
 \newpage
@@ -844,10 +845,10 @@ network.
 \subsubsection{CDN Connections} \label{sec:cdn_connections}
 \fix Describe how the CDN connections are encrypted and secure.
 
-When uploading files to the CDN networks, their TLS/SSL protected API's are used to ensure that no
+When uploading files to the CDN networks, their TLS/SSL protected APIs are used to ensure that no
 data leaks through packet sniffing etc. The files are grouped corresponding to their parent
 containers in Perius, which makes it possible to handle the security settings for all files in a
-group at once, without having to traverse through the tree in Perius.
+group at once, without having to manually traverse through the tree in Perius.
 
 \subsubsubsection{Serving private content} \label{sec:private_content}
 There are three different ways, that this implementation make use of, to make sure that 
@@ -890,7 +891,14 @@ is offered by ReactiveMongo is not needed as the load will not reach the peak, a
 Section~\ref{sec:GET_REQUESTS}, for what Casbah can handle on a single server. 
 
 \subsubsection{Security}
-\fix Write what security implications that can be seen
+The greatest security improvement of Perius compared to its predecessor Battlebinary is not the
+security of the system itself but rather how Perius handles the contents security settings on the
+CDN providers. Perius uses several of the security features for private content that the CDN
+providers offer (see Section~\ref{sec:private_content}) to make sure that the content only is
+accessible from where it should be. In Battlebinary the content was secured by adding a part of the
+hash of the file (see Section~\ref{sec:current_system}) to the filename that it was uploaded with, 
+which resulted in a URL on the CDN that was not guessable but if the link somehow leaked the 
+content that the link referred to would be open to anyone.
 
 \newpage
 \section{JPF}
@@ -1013,7 +1021,7 @@ users have noticed it. The theoretical inconvenience for the user was a trade-of
 application could scale on the width almost endlessly, especially if the issue with building the
 project trees is (as mentioned in Section~\ref{sec:load_testing}) solved.
 
-\par The positive effects of deploying Perius instead of its predecessor was not only on about
+\par The positive effects of deploying Perius instead of its predecessor was not only about
 scaling, it also features a more secure way of handling private assets 
 (Section~\ref{sec:current_system},~\ref{sec:private_content}) and reduces the
 administration needed to control the security settings of large groups of assets
