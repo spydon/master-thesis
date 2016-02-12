@@ -1003,6 +1003,23 @@ documents for insertion as they were so similar the accepted JSON format from th
 As Perius most common operations involve modifying the project tree, a graph database should have 
 been researched too.
 
+\subsubsection{Copy-on-Write's effect on Scalability}
+As no comparison with solutions that were not Copy-on-Write based were made, no scientific
+conclusions can be drawn from how its effect was on the scalability of the system. However some
+intuitively drawn conclusions can be suggested. If comparing to a system which uses a SQL database
+the Copy-on-write system would have an easier time to scale on the width as no global locks or 
+transactions has to be used, which with high probability would slow down the system, especially 
+when widely distributed. 
+The gain of having the locks or transactions would be that the system would always be
+in a fully consistent state. The loss would be that all of the database nodes would need to 
+constantly have to be fully aware of the state of the other nodes. 
+
+\par A more interesting solution would be to not implement any Copy-on-Write system and simply use 
+a persistent storage that scales with eventual consistency. That implementation would most likely be
+more efficient than the current solution, with MongoDB as a persistent storage and the Copy-on-Write
+handling in the back-end code, as a lot of optimisations could be done in the database engine
+instead.
+
 \newpage
 \section{Summary}
 \subsection{Conclusions}
