@@ -224,23 +224,23 @@ unchanged data that is still a part of the system~\cite{SNAPSHOT}.
 
 \newpage
 \label{sec:model}
-\section{Model}
+\section{Model} \label{sec:model}
 The model for this work should show how the data can not be accessed or modified by unauthorized
-users and how the integrity of the data is always kept in the Perius system. 
+users and how the defined integrity of the data is always kept in the Perius system. 
 
 There could also be another relevant part included in the model, to show that content can not be 
 accessed by unauthorized viewers once the content is uploaded to a CDN. But as that should already 
 have been thoroughly checked by the CDN providers this work can focus solely on the internal users 
-and content of the management system. 
+and content in the management system. 
 
 \subsection{Related work}
-The model for this paper is based on the work that was done by Bell, D Elliott, LaPadula and Leonard
-J in their papers Secure computer systems: Mathematical foundations~\cite{BLP1} and Secure computer
-systems: A mathematical model~\cite{BLP2}. In these papers the foundation was laid for how to model
-a computer system to be able to analyse the security of a system. Furthermore this paper was also 
-inspired by Biba, Integrity considerations for secure computer systems~\cite{BIBA}, where many of 
-the points made by him was taken into consideration when inspecting that the integrity of the data 
-was always sound.
+The model for this paper is based on the work that was done by Bell, D Elliott, LaPadula and 
+Leonard J in their papers \textit{Secure computer systems: Mathematical foundations}~\cite{BLP1} 
+and \textit{Secure computer systems: A mathematical model}~\cite{BLP2}. 
+In these papers the foundation was laid for how to model a computer system to be able to analyse 
+the security of a system. Furthermore this paper was also inspired by Biba, \textit{Integrity 
+considerations for secure computer systems}~\cite{BIBA}, where many of the points made by him was 
+taken into consideration when inspecting that the integrity of the data was always sound.
 
 \subsection{Approach}
 \fix Write about how the approach is similar to BLP and that it is not a proof etc
@@ -418,6 +418,12 @@ them not to cause negative performance effects on the system.
 
 \newpage
 \section{Implementation} \label{sec:implementation}
+This chapter deals with the second part of this work, namely the implementation of the Perius 
+system based which is based on the model described in Section~\ref{sec:model}. As this work is not
+intended as a instructions manual more information about how to deploy and use Perius can be found
+on \url{http://perius.se}. This chapter's focus is instead on how the decisions for the
+implementation were made, how well the system would scale and the resulting security implications.
+
 \subsection{Background}
 \subsubsection{The current system} \label{sec:current_system}
 Today a system called battlebinary~\cite{BATTLEBINARY} is used for managing and uploading files,
