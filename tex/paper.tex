@@ -127,8 +127,6 @@
 \title{\textbf{Designing a Security Management Layer for CDN Assets}}
 \author{Lukas Klingsbo}
 
-
-
 %{{{
 \begin{document}
 
@@ -202,6 +200,9 @@ optimisations can be done to simplify that structure~\cite{COPYONWRITE2}.
 
 \newpage
 \section{Related Terminology}
+In this section concepts and abbreviations, that are recurring throughout the paper, which the
+reader needs to be familiar with are explained.
+
 \subsection{Abbreviations}
 \subsubsection{JPF}
 Java Path Finder - It was developed by NASA and in 2005 they released it under an open source
@@ -222,8 +223,21 @@ can be used as backups meanwhile snapshots are not very effective means of backu
 data corruption. It is not effective against data corruption as snapshots usually still refer to 
 unchanged data that is still a part of the system~\cite{SNAPSHOT}.
 
+\subsubsection{Eventual Consistency}
+The expression eventual consistency is a term used for describing how data is processed. It is often
+used in the context of database systems. Eventual consistency means that stored data is guaranteed 
+to be consistent in any one moment, but at some point the data will eventually converge to being 
+consistent~\cite{EVENTUAL}. 
+
+The effect of this is that persistent storages, especially distributed databases, can
+operate faster as there is no need for locks and transactions for any operations. As no locks or
+transactions are used, operations on the same entities can be done before earlier operations have
+propagated to all nodes. This can mean that the system ends up in a state where there is a conflict
+that needs to be handled, for example two operations that wants to change the same data at once. To
+solve this the system needs to have defined which operation that will take precedence and this is
+usually called conflict or sibling resolution.
+
 \newpage
-\label{sec:model}
 \section{Model} \label{sec:model}
 The model for this work should show how the data can not be accessed or modified by unauthorized
 users and how the defined integrity of the data is always kept in the Perius system. 
@@ -237,8 +251,8 @@ and content in the management system.
 The model for this paper is based on the work that was done by Bell, D Elliott, LaPadula and 
 Leonard J in their papers \textit{Secure computer systems: Mathematical foundations}~\cite{BLP1} 
 and \textit{Secure computer systems: A mathematical model}~\cite{BLP2}. 
-In these papers the foundation was laid for how to model a computer system to be able to analyse 
-the security of a system. Furthermore this paper was also inspired by Biba, \textit{Integrity 
+In these papers the foundation was laid for how to model computer systems to be able to analyse 
+the security of them. Furthermore this paper was also inspired by Biba, \textit{Integrity 
 considerations for secure computer systems}~\cite{BIBA}, where many of the points made by him was 
 taken into consideration when inspecting that the integrity of the data was always sound.
 
@@ -249,7 +263,7 @@ As this work only presents an informal model of how the system is designed it ca
 a proof for the actual implementation of the system to be flawless. The model should how ever give a 
 strong idea of the soundness of the design of the system.
 
-The copy-on-write system is only used for files as all of the other objects in the system is
+The Copy-on-Write system is only used for files as all of the other objects in the system is
 basically just meta data and not classed as important, from an data integrity point of view, as the 
 actual files themselves. 
 
@@ -304,10 +318,14 @@ malicious part of the subsystem or simply an incorrect part of the subsystem, wh
 according to specification.
 
 In this work external threats are handled as threats that can occur from what has been exposed by
-the API (See Section~\ref{sec:API} and internal threats as incorrect implementation. As the server
-and its system are assumed safe malicious subsystems are not considered.
+the API (See Section~\ref{sec:API}) and internal threats as incorrect implementation. As the server
+and its system are assumed, safe malicious subsystems are not considered.
 
 \subsection{Consequences of modification} \label{sec:conseq}
+
+In this section the consequences of different operations are stated in an informal mathematical
+manner. These rules are what should be expected to be followed by the implementation in
+Section~\ref{sec:implementation}. 
 
 \begin{center}
     \begin{tabular}{ | l | l | l | p{5cm} |}
@@ -388,19 +406,20 @@ If a user deletes content, the file referred to in the content is not deleted.
 \subsection{Interaction of Multiple Accesses} \label{sec:multiple_access}
 \fix Rename consequence?
 \\
-As a result of consequence~\ref{eq:contentupdate} and~\ref{eq:containerupdate} there can be race
-conditions where the last write wins. This could be solved by locks or transactions, but as updates
-are not based on each other, the trade-off for this inconsistency to scalability and speed is
-intentional. However as can also be seen in consequence~\ref{eq:fileupdate}, if a file is
-removed from a content that file is not removed from the set of files, even though its modification
-process is not the last one to write to the content. This is necessary as a file can be referenced
-from several content and the removal process can not atomically ensure that the file is not referred
-to by another content. This results in a lot of files in the system which are not referenced from
-anywhere. This can be solved by either making each file keep track of how many times it is referred
-to and also make it possible to check this number and delete the file in an atomic fashion. An
-easier approach would be to have a garbage collector which locks parts of the system momentarily
-meanwhile it removes files which are not referenced.
-\\
+As a result of consequence~\ref{eq:contentupdate} and~\ref{eq:containerupdate} in
+Section~\ref{sec:conseq} there can be race conditions where the last write wins. This could be
+solved by locks or transactions, but as updates are not based on each other, the trade-off for this
+inconsistency to scalability and speed is intentional. However as can also be seen in
+consequence~\ref{eq:fileupdate}, if a file is removed from a content that file is not removed from
+the set of files, even though its modification process is not the last one to write to the content.
+This is necessary as a file can be referenced from several content and the removal process can not
+atomically ensure that the file is not referred to by another content. This results in a lot of
+files in the system which are not referenced from anywhere. This can be solved by either making each
+file keep track of how many times it is referred to and also make it possible to check this number
+and delete the file in an atomic fashion. An easier approach would be to have a garbage collector
+which locks parts of the system momentarily meanwhile it removes files which are not referenced. 
+
+\par
 There is also the chance to have content and containers that are not referenced from anywhere and
 result in being garbage in the system. This could happen as a result of consequence~\ref{eq:delete}
 in combination with any of the other consequences listed in Section~\ref{sec:conseq}. The basic idea
@@ -415,6 +434,15 @@ For the system to reach the decided eventual consistency~\cite{KLINGSBO}, garbag
 needed. As of the conclusion in Section~\ref{sec:multiple_access} from Section ~\ref{sec:conseq} 
 there will be objects in the system that can not be reached and should therefore be cleaned up for 
 them not to cause negative performance effects on the system.
+
+\subsubsection{Conflict Resolution}
+If the persistent storage would be distributed the different database nodes would have to have rules
+set up for conflict resolution as this model does not consider what to do if the same meta data is
+modified on the nodes before they have time to synchronise. The easiest way to handle this is to
+have the clocks on the nodes synchronised and timestamp each change and when synchronising the nodes
+only consider the newest data if there is a conflict. This will have the same result as concurrent
+modification with a single database node with this model, namely last write
+wins~\cite{LASTWRITEWINS}.
 
 \newpage
 \section{Implementation} \label{sec:implementation}
@@ -495,7 +523,7 @@ snapshots in O(1)\cite{BTRFS}, this is due to the fact that to create a snapshot
 Copy-on-Write you only need to reference the current nodes in the tree and make sure that they are
 not removed, see Figure~\ref{fig:btrfs_tree}.
 
-As the persistent storage, used in this implementation (Section~\ref{persistent_storage}), does not
+As the persistent storage, used in this implementation (Section~\ref{sec:persistent_storage}), does not
 implement transactions or locks a lot of different problems can occur when several clients are
 working on the same data set at the same time. Such problems could be race conditions and
 determining the happened-before relation. In this work this problem is solved by implementing
@@ -575,8 +603,7 @@ is built upon MongoDB as persistent storage and not a pure tree structure, singl
 fetched in O(1) but when querying for subtrees they need to be built first, which takes O(log(n)),
 where n is the number of nodes in the subtree. 
 
-\subsubsection{Persistent storage}
-\label{persistent_storage}
+\subsubsection{Persistent storage} \label{sec:persistent_storage}
 \subsubsubsection{MongoDB}
 MongoDB was chosen as the persistent storage because of its quick lookups and because of its
 internal storage format called BSON, which is very similar to JSON which the API is using. As the
@@ -651,8 +678,7 @@ create large loads. The testing was done locally on a virtual server having 6 CP
 RAM. The results that will be analysed are latency and throughput of the server as that will give a 
 fair judgement of how well the system can perform.
 
-\subsubsection{GET requests}
-\label{sec:GET_REQUESTS}
+\subsubsection{GET requests} \label{sec:GET_REQUESTS}
 To be able to determine what is the bottleneck of the back-end three different types of \textit{GET
 requests} are performed. The first one tries to maximise the number of requests that spray-can (HTTP
 server) can handle with the given specifications and therefore the server just returns 200 (OK). The
@@ -847,22 +873,23 @@ thus the user can use the same account as for all the LDAP connected services on
 network.
 
 \subsubsection{Audit logs}
+Audit logs are used in the system to keep track of which users that perform which actions. In the
+event that somebody, consciously or unconsciously, are leaking private CDN content from within the
+organisation using Perius the audit trail can be used to find which LDAP account that was
+responsible for the leak.
 
 \subsubsection{CDN Connections} \label{sec:cdn_connections}
-\fix Describe how the CDN connections are encrypted and secure.
-
 When uploading files to the CDN networks, their TLS/SSL protected APIs are used to ensure that no
 data leaks through packet sniffing etc. The files are grouped corresponding to their parent
 containers in Perius, which makes it possible to handle the security settings for all files in a
 group at once, without having to manually traverse through the tree in Perius.
 
 \subsubsubsection{Serving private content} \label{sec:private_content}
-There are three different ways, that this implementation make use of, to make sure that 
-the CDNs serve content in a private manner. The first two are signed URLs and signed cookies, and 
-the third is a mixture between one of the first two together with a range of IP
-addresses.~\cite{AWSPRIVATE} 
-These mechanisms are needed, as explained in Section~\ref{sec:current_system}, to ensure that
-assets are not leaked if an attacker manages to find out the URL for the asset.
+There are three different ways, that this implementation make use of, to make sure that the CDNs
+serve content in a private manner. The first two are signed URLs and signed cookies, and the third
+is a mixture between one of the first two together with a range of IP addresses.~\cite{AWSPRIVATE}
+These mechanisms are needed, as explained in Section~\ref{sec:current_system}, to ensure that assets
+are not leaked if an attacker manages to find out the URL for the asset.
 
 \par \textbf{Signed URLs} \\
 Signed URLs work by writing a policy statement that specifies the restrictions that should apply for
@@ -1000,14 +1027,14 @@ loaded code:        classes=111,
 \newpage
 \section{Discussion}
 \subsection{Persistent Storage}
-More research could have been done in the choosing of persistent storage, as mentioned in ``NoSQL:
-Moving from MapReduce Batch Jobs to Event-Driven Data Collection''~\cite{KLINGSBO} many applications
-that choose NoSQL databases as their persistent storage actually don't need it. This is most likely
-true for Perius too, it would have been efficient enough generating the project trees from an
-indexed SQL database with foreign keys. On the other hand it was quite nice having the BSON
-documents for insertion as they were so similar the accepted JSON format from the REST service.
-As Perius most common operations involve modifying the project tree, a graph database should have 
-been researched too.
+More research could have been done in the choosing of persistent storage, as mentioned in 
+\textit{``NoSQL: Moving from MapReduce Batch Jobs to Event-Driven Data Collection''}
+~\cite{KLINGSBO} many applications that choose NoSQL databases as their persistent storage 
+actually don't need it. This is most likely true for Perius too, it would have been efficient 
+enough generating the project trees from an indexed SQL database with foreign keys. On the 
+other hand it was quite nice having the BSON documents for insertion as they were so similar 
+the accepted JSON format from the REST service. As Perius most common operations involve 
+modifying the project tree, a graph database should have been researched too.
 
 \subsubsection{Copy-on-Write's effect on Scalability}
 As no comparison with solutions that were not Copy-on-Write based were made, no scientific
