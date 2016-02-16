@@ -174,10 +174,13 @@ it can effect the systems scalability.
 \fix Clarify problem definition and research questions
 \newpage
 \section{Background}
+This section gives the reader some background of the company which the thesis was done at and
+explanation of the core concepts which are exerted. 
+
 \subsection{About Uprise}
 Uprise (formerly known as ESN) is a company based in Uppsala, Sweden. It is an EA studio focussing 
-on creating great gaming experiences, which means that they are mostly not focussed on the actual 
-gameplay which other EA studios like DICE is. Currently Uprise has a lot of focus on developing 
+on creating great gaming experiences, which means that they are not focussed on the actual 
+gameplay, which other EA studios like DICE are. Currently Uprise has a lot of focus on developing 
 companion apps and a new form of menu systems.
 
 \subsection{Prior Work}
@@ -199,23 +202,23 @@ optimisations can be done to simplify that structure~\cite{COPYONWRITE2}.
 \fix Polish and extend
 
 \newpage
-\section{Related Terminology}
+\subsection{Related Terminology}
 In this section concepts and abbreviations, that are recurring throughout the paper, which the
 reader needs to be familiar with are explained.
 
-\subsection{Abbreviations}
-\subsubsection{JPF}
+\subsubsection{Abbreviations}
+\subsubsubsection{JPF}
 Java Path Finder - It was developed by NASA and in 2005 they released it under an open source
 licence, which made more people contribute to the project. JPF is usually used for doing model
 checking of concurrent programs to easily find for example race conditions and dead locks.
 
-\subsubsection{CDN}
+\subsubsubsection{CDN}
 Content Distribution/Delivery Network - Replicates content to several servers, usually spread out
 geographically. Once a request is made, the network serves content from the server closest to the
 requester.
 
-\subsection{Terms}
-\subsubsection{Snapshot}
+\subsubsection{Terms}
+\subsubsubsection{Snapshot}
 A snapshot is a way to record the full state of a system at a specific time. The term comes from
 photography where a photo can be seen as the state of what the photo is of, at a certain time.
 Snapshots should not be confused with a full copy of a system, or part of a system, as full copies 
@@ -223,7 +226,7 @@ can be used as backups meanwhile snapshots are not very effective means of backu
 data corruption. It is not effective against data corruption as snapshots usually still refer to 
 unchanged data that is still a part of the system~\cite{SNAPSHOT}.
 
-\subsubsection{Eventual Consistency}
+\subsubsubsection{Eventual Consistency}
 The expression eventual consistency is a term used for describing how data is processed. It is often
 used in the context of database systems. Eventual consistency means that stored data is guaranteed 
 to be consistent in any one moment, but at some point the data will eventually converge to being 
@@ -236,6 +239,10 @@ propagated to all nodes. This can mean that the system ends up in a state where 
 that needs to be handled, for example two operations that wants to change the same data at once. To
 solve this the system needs to have defined which operation that will take precedence and this is
 usually called conflict or sibling resolution.
+
+%\subsubsubsection{Perius}
+%Perius is the name of the implementation that was made during this project. It is an anagram of
+%Uprise and also a type of butterfly.
 
 \newpage
 \section{Model} \label{sec:model}
@@ -257,8 +264,6 @@ considerations for secure computer systems}~\cite{BIBA}, where many of the point
 taken into consideration when inspecting that the integrity of the data was always sound.
 
 \subsection{Approach}
-\fix Write about how the approach is similar to BLP and that it is not a proof etc
-
 As this work only presents an informal model of how the system is designed it can not be regarded as
 a proof for the actual implementation of the system to be flawless. The model should how ever give a 
 strong idea of the soundness of the design of the system.
@@ -444,26 +449,29 @@ only consider the newest data if there is a conflict. This will have the same re
 modification with a single database node with this model, namely last write
 wins~\cite{LASTWRITEWINS}.
 
-\newpage
-\section{Implementation} \label{sec:implementation}
-This chapter deals with the second part of this work, namely the implementation of the Perius 
-system based which is based on the model described in Section~\ref{sec:model}. As this work is not
-intended as a instructions manual more information about how to deploy and use Perius can be found
-on \url{http://perius.se}. This chapter's focus is instead on how the decisions for the
-implementation were made, how well the system would scale and the resulting security implications.
+\newpage 
+\section{Implementation} \label{sec:implementation} 
+This chapter deals with the second part of this work, namely the implementation of the Perius system
+based which is based on the model described in Section~\ref{sec:model}. As this work is not intended
+as an instructions manual, more information about how to deploy and use Perius can be found on
+\url{http://perius.se}. This chapter's focus is instead on how the decisions for the implementation
+were made, how well the system would scale and the resulting security implications.
 
 \subsection{Background}
 \subsubsection{The current system} \label{sec:current_system}
 Today a system called battlebinary~\cite{BATTLEBINARY} is used for managing and uploading files,
-mostly images, to content delivery networks. The current system does not make use out of the
-security features that the CDN's are offering, instead it uses a form of security by obscurity. When
+mostly images, to content delivery networks. The current system does not make use of the
+security features that the CDNs are offering, instead it uses a form of security by obscurity. When
 a file is uploaded to a CDN it is open for the public, but its filename is composed out of its
 original filename concatenated with a part of the MD5 hash of the content of the file, which makes
 it an extremely hard process to access the file on the CDN without access to the original file or a
 reference to the URI.
 
 In the current system you can only upload a file once as there will be a collision in the upload
-otherwise, as the old and the new file will have the same MD5 hash.  
+otherwise, as the old and the new file will have the same MD5 hash, which is by design as duplicate
+content just wastes space on the CDN. The problem with this is that the current interface does not
+handle it very well as one file can not be shown or uploaded in two different places in the virtual
+filesystem.
 
 \subsubsection{Problem description}
 As the current system does not offer proper security measurements, is lacking a lot of features that
@@ -559,8 +567,7 @@ physically copying memory was too slow. Too minimise the copying of memory, Copy
 implemented. It was implemented so that virtual copy operations could be done and so that tasks
 could share read-write memory~\cite{MACH}.
 
-
-\fix Insert more systems here
+\fix Insert more systems here and add a comparison of the systems
 
 \subsubsection{Snapshot functionality of Perius}
 In Perius snapshots and clones are not taken in the fashion which Btrfs uses, which can be seen in
@@ -576,7 +583,7 @@ refers to the same binary files until they are changed, which results in the cre
 \subsubsection{Perius}
 Perius is the implementation that was done to solve the problem at hand at Uprise. Perius has a
 back-end written in Scala and a front-end written in Javascript (ES6), but they are both
-interchangeable.  The back-end has a REST API running, which is how the front-end communicates with
+interchangeable. The back-end has a REST API running, which is how the front-end communicates with
 the back-end.
 
 \fix Picture of the newest front-end
@@ -586,9 +593,8 @@ the back-end.
     \label{fig:frontend}
 \end{figure}
 
-
 The service features a virtual file structure over the assets that has been stored, snapshots,
-security management of whole containers as well as individual files, audit and access logging, multi
+security management of whole containers as well as individual files, audit and auth logging, multi
 project support and a modular design for persistent storage.
 
 The front-end is written in ES6 with React and Reflux, and the styling is done with the help of
@@ -739,24 +745,23 @@ Requests/sec:  91902.48
 Transfer/sec:     22.44MB
 \end{lstlisting}
 \end{minipage}
+\end{custommargins}
 
 Listing~\ref{OKREQUEST} shows that the HTTP server can answer about 100K requests/s when not
 involving any payload other than status code 200 (OK). When comparing that to the request which
-involved the server responding with a small (100 Byte) payload (Listing~\ref{STATICREQUEST} one can 
-see that it is about 10\% slower to send some more data, \textasciitilde90K requests/s. However when comparing 
-that to the requests that needed database access it is obvious that the HTTP server can handle all 
-the load that it needs to, as Listing~\ref{DBREQUEST} shows that to fetch all documents in a 
-collection (in this case only one) is dramatically slower, the throughput was only \textasciitilde7000
-requests/s. 
+involved the server responding with a small (100 Byte) payload (Listing~\ref{STATICREQUEST} one can
+see that it is about 10\% slower to send some more data, \textasciitilde90K requests/s. However when
+comparing that to the requests that needed database access it is obvious that the HTTP server can
+handle all the load that it needs to, as Listing~\ref{DBREQUEST} shows that to fetch all documents
+in a collection (in this case only one) is dramatically slower, the throughput was only
+\textasciitilde7000 requests/s. 
 
-\par
-These are very simple requests, to evaluate how much load the application can handle in its current
-state a more complex but common request has to be analysed. The most complicated and still common
-request that system is receiving is requests of a full project tree. This request is computationally
-expensive as the tree is not stored directly in the database but has to be built from the id and
-parent id of each container and content, a simulated project tree of similar size to the ones stored 
-in the current management system reaches around 25KB in uncompressed size.
-\end{custommargins}
+\par These are very simple requests, to evaluate how much load the application can handle in its
+current state a more complex but common request has to be analysed. The most complicated and still
+common request that system is receiving is requests of a full project tree. This request is
+computationally expensive as the tree is not stored directly in the database but has to be built
+from the id and parent id of each container and content, a simulated project tree of similar size to
+the ones stored in the current management system reaches around 25KB in uncompressed size.
 
 \begin{minipage}{\linewidth-1cm}
 \begin{lstlisting}[label=TREEREQUEST,caption=Result of project tree requests]
@@ -806,7 +811,7 @@ million active users which are not posting any content, this is simulated in
 Listing~\ref{CACHEREQUEST}.
 
 \par
-Another simple optimisation that was added was indices on the parent id's, which are heavily queried
+Another simple optimisation that was added was indices on the parent ids, which are heavily queried
 when building the project trees.
 
 \begin{minipage}{\linewidth-1cm}
@@ -889,7 +894,7 @@ There are three different ways, that this implementation make use of, to make su
 serve content in a private manner. The first two are signed URLs and signed cookies, and the third
 is a mixture between one of the first two together with a range of IP addresses.~\cite{AWSPRIVATE}
 These mechanisms are needed, as explained in Section~\ref{sec:current_system}, to ensure that assets
-are not leaked if an attacker manages to find out the URL for the asset.
+are not leaked if an attacker manages to find out the URL for the asset. \\
 
 \par \textbf{Signed URLs} \\
 Signed URLs work by writing a policy statement that specifies the restrictions that should apply for
@@ -1099,7 +1104,7 @@ re-fetching the full project tree every time a change is made.
 
 %What to write about
 %Battle Binary
-%Security features of CDN's
+%Security features of CDNn's
 %What is needed by the logic, like what happens after two consecutive deletes
 %
 %What is needed
