@@ -1082,6 +1082,13 @@ scaling, it also features a more secure way of handling private assets
 administration needed to control the security settings of large groups of assets
 (Section~\ref{sec:cdn_connections}) at the same time.
 
+\par The conclusion that can be drawn from implementing Copy-on-Write as high up in the stack as it
+was in Perius is that the code would have to be largely rewritten for every application that wants
+to use a similar approach. The solution to this could be to use Copy-on-Write in the persistent
+storage instead of in the actual application, which also efficiently could handle conflict 
+resolution and every improvement made to it could be shared for every system that uses the same 
+type of system architecture and underlying persistent storage.
+
 \subsection{Future work}
 \subsubsection{Access Control}
 Full access control was not implemented according to the model described in ~\ref{sec:model}, it
