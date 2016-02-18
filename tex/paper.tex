@@ -1094,20 +1094,20 @@ instead.
 \newpage
 \section{Summary}
 \subsection{Conclusions}
-The goal of this thesis was to see whether it was feasible to use copy-on-write in a high level
+The goal of this thesis was to see whether it was feasible to use Copy-on-Write in a high level
 application (See Figure~\ref{fig:stack}). As the implementation (see
 Section~\ref{sec:implementation}) made as a part of this thesis project is already replacing its
 predecessor the simple conclusion is that it definitely is possible. In the beginning of the project
 thoughts were on having every element being operated upon in a copy-on-write fashion but this was
-later narrowed down to only have the most important part, the files, as copy-on-write. This was due
+later narrowed down to only have the most important part, the files, as Copy-on-Write. This was due
 to that the conclusion that it did not matter if the other elements were resolved in a
 last-write-wins manner when modified.
 
-\par If this application would be distributed with several persistent storage nodes like MongoDB, the
-application would not always be in a global consistent state as there would not be any global locks.
-This could theoretically cause some inconvenience for the user but in all real world tests no 
-users have noticed it. The theoretical inconvenience for the user was a trade-off made so that the
-application could scale on the width almost endlessly, especially if the issue with building the
+\par If this application would be distributed with several persistent storage nodes like MongoDB,
+the application would not always be in a global consistent state as there would not be any global
+locks.  This could theoretically cause some inconvenience for the user but in all real world tests
+no users have noticed it. The theoretical inconvenience for the user was a trade-off made so that
+the application could scale on the width almost endlessly, especially if the issue with building the
 project trees is (as mentioned in Section~\ref{sec:load_testing}) solved.
 
 \par The positive effects of deploying Perius instead of its predecessor was not only about
@@ -1121,7 +1121,12 @@ was in Perius is that the code would have to be largely rewritten for every appl
 to use a similar approach. The solution to this could be to use Copy-on-Write in the persistent
 storage instead of in the actual application, which also efficiently could handle conflict 
 resolution and every improvement made to it could be shared for every system that uses the same 
-type of system architecture and underlying persistent storage.
+type of system architecture and underlying persistent storage. On the other hand, by having all the
+Copy-on-Write specific code in the back-end instead of the persistent storage the choices of
+storage becomes wider as the database does not have to implement the named things. This could be
+positive when deploying Perius in environments with high requirements for the number of users
+that the system should be able to handle as the level of consistency needed could be fully tweaked
+to make a trade off for how many users the application would work for.
 
 \subsection{Future work}
 \subsubsection{Access Control}
