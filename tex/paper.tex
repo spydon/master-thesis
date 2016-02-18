@@ -435,15 +435,17 @@ These type of inconveniences should also be cleaned up by the garbage collector.
 \subsection{JPF}
 \fix Not sure where to put this section
 
-JPF was used to test the idea and state transitioning of the application. It's a very simplified
+JPF was used to test the idea and state transitioning of the model. It's a very simplified
 version of the real system that still contains all the important Copy-on-Write core concepts and the 
-assumptions that have been made in the model. This simplified version could then be automatically
-tested for soundness. It is not a proof that the model works, but it is very exhaustive in its
+assumptions that have been made in the model. This simplified version was then used to automatically
+test for unwanted quirks. It is not a proof that the model works, but it is very exhaustive in its
 testing.
 
 \subsubsection{Entities}
-\begin{figure}[htp] \centering{
-    \includegraphics[scale=0.8]{relation.pdf}}
+\begin{figure}[H] 
+    \centering{
+        \includegraphics[scale=0.8]{relation.pdf}
+    }
     \caption{High Level Entity Relationships}
     \label{fig:relation}
 \end{figure}
@@ -569,6 +571,35 @@ examining a way of implementing Copy-on-Write in a high level system like this, 
 the scalability problem and make it possible to implement wanted features like snapshots, cloning
 and concurrent modifications of content.
 
+\begin{figure}[H] 
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|r|l|}
+        \hline
+        Application &
+        \begin{tabular}{|r|l|}
+            \hline
+            Perius Front-end\\
+            Perius Back-end\\
+            \hline
+        \end{tabular}\\
+        Persistent Storage & MongoDB \\ \cline{2-2}
+        Filesystem & Ext4 \\ \cline{2-2}
+        OS & Arch Linux \\
+        \hline \hline
+        Hardware & \\
+        \hline
+    \end{tabular}
+    \renewcommand{\arraystretch}{1.0}
+    \caption{Software Stack}
+    \label{fig:stack}
+\end{figure}
+
+To clarify what is meant by Perius being high level software the stack in Figure~\ref{fig:stack} can
+be examined. Theoretically the Copy-on-Write features could be implemented in any of the separate
+parts of the stack to support the features that Perius has to achieve, in this work only the second
+highest layer is considered, the Perius back-end.
+
 \subsection{Related Technologies}
 \subsubsection{React}
 React is a JavaScript library for building user interfaces. React uses both its own virtual DOM and
@@ -583,7 +614,7 @@ Reflux~\cite{REFLUX} is an idea and a simple library of how to structure your ap
 features a unidirectional dataflow (see Figure~\ref{fig:reflux}) which makes it more suitable, than
 for example Flux~\cite{FLUX}, when using a functional reactive programming style.
 
-\begin{figure}[htp] 
+\begin{figure}[H] 
     \centering
     \includegraphics[scale=0.4]{reflux.png}
     \caption{Reflux unidirectional dataflow}
@@ -644,8 +675,10 @@ reference counter is not stored in the nodes themselves but rather in a separate
 that a nodes counter can be modified without modifying the node itself and therefore eludes the
 Copy-on-Write that would have to occur.
 
-\begin{figure}[htp] \centering{
-    \includegraphics[scale=0.4]{newtree.png}}
+\begin{figure}[H] 
+    \centering{
+        \includegraphics[scale=0.4]{newtree.png}
+    }
     \caption{Cloning mechanism of Btrfs~\cite{BTRFS}}
     \label{fig:btrfs_tree}
 \end{figure}
@@ -676,8 +709,10 @@ interchangeable. The back-end has a REST API running, which is how the front-end
 the back-end.
 
 \fix Picture of the newest front-end
-\begin{figure}[htp] \centering{
-    \includegraphics[scale=0.4]{frontend.png}}
+\begin{figure}[H] 
+    \centering{
+        \includegraphics[scale=0.4]{frontend.png}
+    }
     \caption{Front-end~\cite{BTRFS}}
     \label{fig:frontend}
 \end{figure}
@@ -1060,12 +1095,13 @@ instead.
 \section{Summary}
 \subsection{Conclusions}
 The goal of this thesis was to see whether it was feasible to use copy-on-write in a high level
-application. As the implementation (see Section~\ref{sec:implementation}) made as a part of this 
-thesis project is already replacing its predecessor the simple conclusion is that it definitely is 
-possible. In the beginning of the project thoughts were on having every element being operated upon
-in a copy-on-write fashion but this was later narrowed down to only have the most important part,
-the files, as copy-on-write. This was due to that the conclusion that it did not matter if the 
-other elements were resolved in a last-write-wins manner when modified.
+application (See Figure~\ref{fig:stack}). As the implementation (see
+Section~\ref{sec:implementation}) made as a part of this thesis project is already replacing its
+predecessor the simple conclusion is that it definitely is possible. In the beginning of the project
+thoughts were on having every element being operated upon in a copy-on-write fashion but this was
+later narrowed down to only have the most important part, the files, as copy-on-write. This was due
+to that the conclusion that it did not matter if the other elements were resolved in a
+last-write-wins manner when modified.
 
 \par If this application would be distributed with several persistent storage nodes like MongoDB, the
 application would not always be in a global consistent state as there would not be any global locks.
