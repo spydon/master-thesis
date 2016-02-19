@@ -738,22 +738,39 @@ content with the same parent id, starting from the root of the project. Parent i
 by a hash index which makes it possible to get all nodes with the same parent id in constant time.
 This has to be done for every level with a different parent in the tree which makes the upper bound
 O(n) if all of the subtrees only have one node each. The tight bound can not be calculated as the
-trees balance is not determined by an algorithm but rather by a user, but from observation one 
-could argue that the trees usually have several nodes for each parent node in the tree, which then
-would give a logarithmic tight bound, $\theta(log(n))$.\\
+trees balance is not determined by an algorithm but rather by a user, but from observation one could
+argue that the trees usually have several nodes for each parent node in the tree, which then would
+give a logarithmic tight bound, $\theta(log(n))$.\\
 
-\par \textbf{POST entity} \\
+\par \textbf{POST/Create entity} \\
 Creating a new entity in the system is a constant time operation for containers and content as they
 only have to be inserted as new documents in MongoDB, which is a O(1)
-operation~\cite{MONGOPERFOMANCE}. Even though the insertion itself has constant run-time the index 
+operation~\cite{MONGOPERFOMANCE}. Even though the insertion itself has constant run-time the index
 needs to be updated or some times even rebuilt, which can slow the time before the document is
 accessible in constant time. When inserting files they need to be chunked in to pieces and inserted
-into GridFS, this results in n/s insertions where n is the size of the file and s is the chunk size. 
+into GridFS, this results in n/s insertions where n is the size of the file and s is the chunk size.
 The insertion of files can then be regarded as O(n) if the size of the file is regarded, but if n is
 regarded as the number of files in the system the upper bound is constant as the insertion for files
-is made in the same way as for other documents.
+is made in the same way as for other documents.\\
 
+\par \textbf{Snapshot creation} \\
+In the creation of a snapshot all meta data in the tree that the snapshot is taken of is duplicated,
+meanwhile the files remain the same, this results in n insertions where n is the number of
+containers and content entities in the subtree. A snapshot insertions runtime is therefore
+$\theta(n)$ and O(n). \\
 
+\par \textbf{Delete entity} \\
+Deleting an entity is a constant time operation when that entity does not have any children. When
+the entity has children all those children has to be deleted too which will be done in the same
+manner as the project tree is built and therefore results in the same runtime, O(n) as an upper
+bound, where n is the number of entities in the subtree.
+
+\par \textbf{PUT/Update entity} \\
+The update operation in MongoDB completely replaces a document with another in regards to their
+unique identifier. This could be seen as a deletion of the old document and an insertion of the new
+document, but with the same id, which makes it unnecessary to update the index for the unique id
+(other indices might have to be updated though). As both deletion and insertion are constant time
+operations, update is also O(1).\\
 
 \subsubsection{Copy-on-Write}
 \fix Rename section and move
