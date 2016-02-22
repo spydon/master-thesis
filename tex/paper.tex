@@ -142,9 +142,16 @@
 
 %}}}
 \begin{abstract}
-    \fix Abstract is written last
+This work presents a technique for incorporating Copy-on-Write in the development of a high level
+system on top of an unaware persistent storage. The system in this case is a security management
+system, but the technique and conclusions drawn are general enough to be applicable to any system
+with vaguely similar consistency requirements. The scalability of the system is tested and the
+technique is evaluated and the technique is shown to be very efficient (scalable to >
+simultaneous users on a single node), but a better solution is also suggested in the
+conclusion.\\
 
-\keywords{}
+\keywords{CDN, Copy-on-Write, Eventual Consistency, MongoDB, Persistent Storage, Scalability, 
+Software Security}
 \end{abstract}
 
 %{{{
@@ -731,6 +738,10 @@ The front-end is written in ES6 with React and Reflux, and the styling is done w
 Bootstrap.
 
 \subsubsection{Run-time Complexity of Operations}
+The runtime complexities of the operations in this section are quite intuitive, that is why they 
+are only explained, and not proven to fulfil the complexities which are claimed. 
+%To prove them, methods like the master theorem~\cite{ALGORITHMS} or \dots could be used.
+
 \begin{figure}[H] 
     \centering{
          \begin{tikzpicture}[nodes={draw, circle, fill=blue!20}, <-]
@@ -1054,7 +1065,10 @@ Transfer/sec:      0.97MB
 \end{minipage}
 
 After adding indices, the building of the project tree was able to finish 50 times faster and the
-server was able to serve 2100 requests/s, see Listing~\ref{INDEXREQUEST}.
+server was able to serve 2100 requests/s, see Listing~\ref{INDEXREQUEST}. If using the same
+approximated average that was used in connection to Listing~\ref{TREEREQUEST} (30 requests/s), the
+maximum number of clients that one node can handle will be >60000, without taking the web servers
+limits or content posting into consideration.
 
 \subsubsection{POST requests}
 Two different POST requests will be tested, creation of containers and creation of content together
