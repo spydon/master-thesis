@@ -124,7 +124,7 @@
 \providecommand{\keywords}[1]{\textbf{\textit{Keywords: }} #1}
 
 %}}}
-\title{\textbf{Designing a Security Management Layer for CDN Assets}}
+\title{\textbf{Designing a Security Management Layer with Copy-on-Write for CDN Assets}}
 \author{Lukas Klingsbo}
 
 %{{{
@@ -180,8 +180,9 @@ it can effect the systems scalability.
 \fix Clarify problem definition and research questions
 \newpage
 \section{Background}
-This section gives the reader some background of the company which the thesis was done at and
-explanation of the core concepts which are exerted. 
+This section gives the reader some background of the company where the thesis was written and
+implementation was made. It also gives some brief explanation of the core concepts which are 
+exerted throughout this work. 
 
 \subsection{About Uprise}
 Uprise (formerly known as ESN) is a company based in Uppsala, Sweden. It is an EA studio focussing 
@@ -202,7 +203,7 @@ languages\cite{LANGCOW}.
 Its principle is that when processes or nodes share data in between each other, the data is not
 copied until one of the processes makes changes to it. This is an optimisation as the processes does
 not have to send or copy all of the related data that is in memory, rather they only have to send
-pointers to the data. After many Copy-on-Write's a complex tree structure can be built up, but
+pointers to the data. After many Copy-on-Writes a complex tree structure can be built up, but
 optimisations can be done to simplify that structure~\cite{COPYONWRITE2}.
 
 \fix Polish and extend
@@ -213,11 +214,6 @@ In this section concepts and abbreviations, that are recurring throughout the pa
 reader needs to be familiar with are explained.
 
 \subsubsection{Abbreviations}
-\subsubsubsection{JPF}
-Java Path Finder - It was developed by NASA and in 2005 they released it under an open source
-licence, which made more people contribute to the project. JPF is usually used for doing model
-checking of concurrent programs to easily find for example race conditions and dead locks.
-
 \subsubsubsection{CDN}
 Content Distribution/Delivery Network - Replicates content to several servers, usually spread out
 geographically. Once a request is made, the network serves content from the server closest to the
@@ -229,15 +225,12 @@ not be used as there can be insertions on several nodes at the same time. A GUID
 function that makes it impossible or extremely unlikely that the same identifier will be generated
 and used again.
 
-\subsubsection{Terms}
-\subsubsubsection{Snapshot}
-A snapshot is a way to record the full state of a system at a specific time. The term comes from
-photography where a photo can be seen as the state of what the photo is of, at a certain time.
-Snapshots should not be confused with a full copy of a system, or part of a system, as full copies 
-can be used as backups meanwhile snapshots are not very effective means of backup in the case of 
-data corruption. It is not effective against data corruption as snapshots usually still refer to 
-unchanged data that is still a part of the system~\cite{SNAPSHOT}.
+\subsubsubsection{JPF}
+Java Path Finder - It was developed by NASA and in 2005 they released it under an open source
+licence, which made more people contribute to the project. JPF is usually used for doing model
+checking of concurrent programs to easily find for example race conditions and dead locks.
 
+\subsubsection{Terms}
 \subsubsubsection{Eventual Consistency}
 The expression eventual consistency is a term used for describing how data is processed. It is often
 used in the context of database systems. Eventual consistency means that stored data is guaranteed 
@@ -249,16 +242,24 @@ operate faster as there is no need for locks and transactions for any operations
 transactions are used, operations on the same entities can be done before earlier operations have
 propagated to all nodes. This can mean that the system ends up in a state where there is a conflict
 that needs to be handled, for example two operations that wants to change the same data at once. To
-solve this the system needs to have defined which operation that will take precedence and this is
-usually called conflict or sibling resolution.
+solve this the system needs to have defined which operation that will take precedence, or how the
+concurrent operations are mixed, and this is usually called conflict or sibling resolution.
 
 \subsubsubsection{Perius}
 Perius is the name of the implementation that was made during this project. It is an anagram of
 Uprise and also a type of butterfly.
 
+\subsubsubsection{Snapshot}
+A snapshot is a way to record the full state of a system at a specific time. The term comes from
+photography where a photo can be seen as the state of what the photo is of, at a certain time.
+Snapshots should not be confused with a full copy of a system, or part of a system, as full copies 
+can be used as backups meanwhile snapshots are not very effective means of backup in the case of 
+data corruption. It is not effective against data corruption as snapshots usually still refer to 
+unchanged data that is still a part of the system~\cite{SNAPSHOT}.
+
 \newpage
 \section{Model} \label{sec:model}
-The model for this work should show how the data can not be accessed or modified by unauthorized
+The model for this work should show how the data can only be accessed or modified by authorized
 users and how the defined integrity of the data is always kept in the Perius system. 
 
 There could also be another relevant part included in the model, to show that content can not be 
@@ -277,11 +278,11 @@ taken into consideration when inspecting that the integrity of the data was alwa
 
 \subsection{Approach}
 As this work only presents an informal model of how the system is designed it can not be regarded as
-a proof for the actual implementation of the system to be flawless. The model should how ever give a 
+a proof for the actual implementation of the system to be flawless. The model should however give a 
 strong idea of the soundness of the design of the system.
 
 The Copy-on-Write system is only used for files as all of the other objects in the system is
-basically just meta data and not classed as important, from an data integrity point of view, as the 
+basically just meta data and not classed as important, from a data integrity point of view, as the 
 actual files themselves. 
 
 \subsection{Elements of the Model}
@@ -299,8 +300,9 @@ actual files themselves.
 
 
 \subsection{Access rights}
-The \textit{a} notation is meant to symbolise an access token, and if \textit{a} exists in the requested entity of
-the matrix the corresponding user to that entity has full access to the corresponding object.
+The \textit{a} notation is meant to symbolise an access token, and if \textit{a} exists in the
+requested entity of the matrix the corresponding user to that entity has full access to the
+corresponding object.
 
 \begin{equation}
     \begin{split}
@@ -312,7 +314,8 @@ the matrix the corresponding user to that entity has full access to the correspo
     \end{split}
 \end{equation}
 
-% The last one means that no users can delete actual files
+\fix The last one means that no users can delete actual files, probably a bit confusingly written, 
+or even wrong?
 
 \subsection{Data integrity}
 A computer system or subsystem is defined as possessing the property of integrity if it behaves consistently
@@ -426,9 +429,9 @@ If a user deletes content, the file referred to in the content is not deleted.
 As a result of consequence~\ref{eq:contentupdate} and~\ref{eq:containerupdate} in
 Section~\ref{sec:conseq} there can be race conditions where the last write wins. This could be
 solved by locks or transactions, but as updates are not based on each other, the trade-off for this
-inconsistency to scalability and speed is intentional. However as can also be seen in
+inconsistency to scalability and speed is intentional. However, as can also be seen in
 consequence~\ref{eq:fileupdate}, if a file is removed from a content that file is not removed from
-the set of files, even though its modification process is not the last one to write to the content.
+the set of files, even though its modification process is the last one to write to the content.
 This is necessary as a file can be referenced from several content and the removal process can not
 atomically ensure that the file is not referred to by another content. This results in a lot of
 files in the system which are not referenced from anywhere. This can be solved by either making each
@@ -448,7 +451,7 @@ These type of inconveniences should also be cleaned up by the garbage collector.
 \fix Not sure where to put this section
 
 JPF was used to test the idea and state transitioning of the model. It's a very simplified
-version of the real system that still contains all the important Copy-on-Write core concepts and the 
+version of the real system that still contains all the important Copy-on-Write concepts and the 
 assumptions that have been made in the model. This simplified version was then used to automatically
 test for unwanted quirks. It is not a proof that the model works, but it is very exhaustive in its
 testing.
@@ -468,8 +471,8 @@ content can refer to for example an image, video or binary blob.\\
 
 \par \textbf{Project} \\
 A project is what is created to contain all content and containers related to a real project. Files
-can be changed within a project and the system can contain several projects and their virtual
-content are completely disjoint.\\
+and meta-data can only be changed within a project and the system can contain several projects 
+that have their virtual content and containers completely disjoint.\\
 
 \par \textbf{Container} \\
 A container is a virtual folder within a project which can contain content and other containers.\\
@@ -499,14 +502,14 @@ Each client was represented by a thread and each action taken by the client was 
 hashes which MongoDB is using for each entity was imported from the mongo-java-driver-2.13.3 and
 each object had its own id, generated in the same fashion as the real implementation is using,
 randomly generated by the ObjectId class to minimise collisions that is.  Furthermore no locking or
-transactions were used and the threads were running fully concurrently, without any sleep
+transactions were used and the threads were running fully concurrently and without any sleep
 statements. 
 
 ConcurrentHashMap had to be used in instead of the normal HashMap, as the normal HashMaps can't be
 iterated over concurrently.
 
-JPF checked each permutation of states that the threads can end up in, the result of the run can be
-seen in Listing~\ref{JPFRESULT}.
+JPF checked each permutation of states, to a certain depth, that the threads can end up in and the 
+result of the run can be seen in Listing~\ref{JPFRESULT}.
 
 \begin{lstlisting}[label=JPFRESULT,caption=Results of JPF run]
 elapsed time:       14:26:53
@@ -538,10 +541,10 @@ loaded code:        classes=111,
 \subsection{Findings}
 \fix Add more findings
 \subsubsection{Garbage Collection}
-For the system to reach the decided eventual consistency~\cite{KLINGSBO}, garbage collection will be
-needed. As of the conclusion in Section~\ref{sec:multiple_access} from Section ~\ref{sec:conseq} 
-there will be objects in the system that can not be reached and should therefore be cleaned up for 
-them not to cause negative performance effects on the system.
+For the system to reach a clean state and the decided eventual consistency~\cite{KLINGSBO}, garbage
+collection will be needed. As of the conclusion in Section~\ref{sec:multiple_access} from Section
+~\ref{sec:conseq} there will be objects in the system that are unreferenced and can not be reached
+and should therefore be cleaned up for them not to cause negative performance effects on the system.
 
 \subsubsection{Conflict Resolution}
 If the persistent storage would be distributed the different database nodes would have to have rules
@@ -554,11 +557,11 @@ wins~\cite{LASTWRITEWINS}.
 
 \newpage 
 \section{Implementation} \label{sec:implementation} 
-This chapter deals with the second part of this work, namely the implementation of the Perius system
-based which is based on the model described in Section~\ref{sec:model}. As this work is not intended
-as an instructions manual, more information about how to deploy and use Perius can be found on
-\url{http://perius.se}. This chapter's focus is instead on how the decisions for the implementation
-were made, how well the system would scale and the resulting security implications.
+This chapter deals with the second part of this work, namely the implementation of the Perius
+system. The implementation is based on the model described in Section~\ref{sec:model}. As this work
+is not intended as an instructions manual, more information about how to deploy and use Perius can
+be found on \url{http://perius.se}. This chapter's focus is instead on how the decisions for the
+implementation were made, how well the system would scale and the resulting security implications.
 
 \subsection{Background}
 \subsubsection{The current system} \label{sec:current_system}
@@ -573,12 +576,12 @@ reference to the URI.
 In the current system you can only upload a file once as there will be a collision in the upload
 otherwise, as the old and the new file will have the same MD5 hash, which is by design as duplicate
 content just wastes space on the CDN. The problem with this is that the current interface does not
-handle it very well as one file can not be shown or uploaded in two different places in the virtual
-filesystem.
+handle it very well as one file can not be shown or uploaded in two different places in Battle
+Binary's virtual filesystem.
 
 \subsubsection{Problem description}
 As the current system does not offer proper security measurements, is lacking a lot of features that
-is needed and does not scale very well, a new system should be developed. This work is about
+are needed and does not scale very well, a new system should be developed. This work is about
 examining a way of implementing Copy-on-Write in a high level system like this, which should solve
 the scalability problem and make it possible to implement wanted features like snapshots, cloning
 and concurrent modifications of content.
@@ -615,10 +618,10 @@ highest layer is considered, the Perius back-end.
 \subsection{Related Technologies}
 \subsubsection{React}
 React is a JavaScript library for building user interfaces. React uses both its own virtual DOM and
-the browser's, this makes it able to efficiently update dynamic web pages after a change of state
-through comparing the old virtual DOM with the resulting virtual DOM after the state change and then
-only update the browser's DOM according to the delta between the virtual DOMs~\cite{REACT}. React
-can be seen as the system for handling views in front-ends implementing a MVC
+the browser's normal DOM, this makes it able to efficiently update dynamic web pages after a change
+of state through comparing the old virtual DOM with the resulting virtual DOM after the state change
+and then only update the browser's DOM according to the delta between the virtual DOMs~\cite{REACT}.
+React can be seen as the system for handling views in front-ends implementing a MVC
 (Model-View-Controller) architecture.
 
 \subsubsection{Reflux}
@@ -634,7 +637,7 @@ for example Flux~\cite{FLUX}, when using a functional reactive programming style
 \end{figure}
 
 \subsubsection{Scala} 
-Scala is a multi-paradigm programming language. It most commonly runs on the JVM and compared to
+Scala is a multi-paradigm programming language. It most commonly runs on the JVM and as apart from
 Java it supports most functional programming features at the same time as it supports object
 oriented programming~\cite{SCALA}.  
 
@@ -644,7 +647,7 @@ services. These services usually use URIs to identify specific resources and HTT
 these resources~\cite{REST}. 
 
 \subsubsection{MongoDB}
-MongoDB is a document-oriented database which means that it does not have the concept of rows as
+MongoDB is a document-oriented database, which means that it does not have the concept of rows as
 normal relational databases has. Instead each entity in the database is stored as a document which
 is not fixed to a predefined table structure~\cite{MONGODB}. MongoDB lacks the support for joins to
 improve its possibility to scale, which can be a big down side to some applications containing the
@@ -653,19 +656,21 @@ need for such logic.
 \subsection{Methods for determining\\implementation details}
 This chapter introduces the different methods used to determine how the new system should be
 implemented, which DBMS it should use and how the estimation of long term scaling was done.
+\\
+\fix Fix this section, move things here and fill out with missing details
 
 \subsection{Snapshot functionality}
 \fix Structure to compare snapshot systems and conclude how Perius snapshot system was designed
 \subsubsection{Copy-on-Write}
 \label{sec:copy-on-write}
-To efficiently create snapshots of a system Copy-on-Write can be used to make it possible to create
-snapshots in O(1)\cite{BTRFS}, this is due to the fact that to create a snapshot in a system using
+To efficiently create snapshots of a system, Copy-on-Write can be used to make it possible to create
+snapshots in O(1)\cite{BTRFS}. This is due to the fact that to create a snapshot in a system using
 Copy-on-Write you only need to reference the current nodes in the tree and make sure that they are
 not removed, see Figure~\ref{fig:btrfs_tree}.
 
 As the persistent storage, used in this implementation (Section~\ref{sec:persistent_storage}), does not
 implement transactions or locks a lot of different problems can occur when several clients are
-working on the same data set at the same time. Such problems could be race conditions and
+working on the same data set at the same time. Such problems could be race conditions or
 determining the happened-before relation. In this work this problem is solved by implementing
 Copy-on-Write.
 \fix Move last paragraph
@@ -709,7 +714,7 @@ Figure~\ref{fig:btrfs_tree}. As Perius does not have the tree structure pre-buil
 instead stored in a flat storage space, such operation would be too computationally expensive as
 trees would have to be merged when collisions occur, due to the non-blocking nature of the
 application. Instead this implementation makes a full copy of the meta-data of the tree, but still
-refers to the same binary files until they are changed, which results in the creation of a new node.
+refers to the same binary files until they are changed.
 
 \fix Relate section more to comparison
 
@@ -729,14 +734,15 @@ the back-end.
     \label{fig:frontend}
 \end{figure}
 
-The service features a virtual file structure over the assets that has been stored, snapshots,
-security management of whole containers as well as individual files, audit and auth logging, multi
-project support and a modular design for persistent storage.
+The service features a virtual file structure over the assets and meta-data that have been stored,
+as can be seen in Figure~\ref{fig:frontend}. It also features snapshots, security management of
+whole containers as well as individual files, audit and auth logging, multiple separate project 
+and a design which allows for an interchangeable persistent storage.
 
 The front-end is written in ES6 with React and Reflux, and the styling is done with the help of
 Bootstrap.
 
-\subsubsection{Run-time Complexity of Operations}
+\subsubsection{Run-time Complexity of Operations} \label{sec:run_time}
 The runtime complexities of the operations in this section are quite intuitive, that is why they 
 are only explained, and not proven to fulfil the complexities which are claimed. 
 %To prove them, methods like the master theorem~\cite{ALGORITHMS} or \dots could be used.
@@ -780,17 +786,19 @@ Figure~\ref{fig:project_tree}. This is however not what the actual storage of th
 
 The actual storage of the data is represented by documents in a flat document storage, which is in
 this case MongoDB. A very simplified version of how the data is stored can be seen in
-Figure~\ref{fig:storage}. One important point that differs in the example and in the actual storage
-is that GUIDs are used for identifiers and not incremented numbers, as that would not work in
-distributed environments. 
+Figure~\ref{fig:storage}, however in reality it not quite so table-like. One important point that 
+differs in the example and in the actual storage is that GUIDs are used for identifiers and not 
+incremented numbers, as that would not work in distributed environments. 
 
-As the data is not stored as a tree, but rather as separate documents loosely referring to each
-other, the run-time complexity is not obvious and that is what is discussed in this section.\\
+The data is not stored as a tree (see Example~\ref{fig:storage}, but rather as separate documents 
+loosely referring to each other. How the different operations perform their actions and what 
+implications these actions have on the operations run-time complexities are not obvious and that 
+is what is discussed in this section.\\
 
 \par \textbf{GET single entity} \\
-When the back-end is handed a GET request it looks at what type it is and returns the document with
-the correct id from the corresponding collection. As the collections are hash indexed on id this
-operation can be made in constant time, O(1) and thus $\theta(1)$. \\
+When the back-end is handed a GET request it looks at what type of entity that is requested and
+returns the document with the correct id from the corresponding collection. As the collections are
+hash indexed on id this operation can be made in constant time, O(1) and thus $\theta(1)$. \\
 
 \par \textbf{GET project tree} \\
 When requesting a project the full project tree with all entities except files has to be built as
@@ -806,9 +814,9 @@ give a logarithmic tight bound, $\theta(log(n))$.\\
 \par \textbf{POST/Create entity} \\
 Creating a new entity in the system is a constant time operation for containers and content as they
 only have to be inserted as new documents in MongoDB, which is a O(1)
-operation~\cite{MONGOPERFOMANCE}. Even though the insertion itself has constant run-time the index
-needs to be updated or some times even rebuilt, which can slow the time before the document is
-accessible in constant time. When inserting files they need to be chunked in to pieces and inserted
+operation~\cite{MONGOPERFORMANCE}. Even though the insertion itself has constant run-time the index
+needs to be updated or sometimes even rebuilt, which can slow down the time before the document is
+accessible in constant time. When inserting files they need to be chunked into pieces and inserted
 into GridFS, this results in n/s insertions where n is the size of the file and s is the chunk size.
 The insertion of files can then be regarded as O(n) if the size of the file is regarded, but if n is
 regarded as the number of files in the system the upper bound is constant as the insertion for files
@@ -828,10 +836,10 @@ bound, where n is the number of entities in the subtree.\\
 
 \par \textbf{PUT/Update entity} \\
 The update operation in MongoDB completely replaces a document with another in regards to their
-unique identifier. This could be seen as a deletion of the old document and an insertion of the new
-document, but with the same id, which makes it unnecessary to update the index for the unique id
-(other indices might have to be updated though). As both deletion and insertion are constant time
-operations, update is also O(1).\\
+unique identifier. This could be seen as a deletion of the old document and an insertion of a new
+one, but with the same id, which makes it unnecessary to update the index for the unique id. Other 
+indices might have to be updated though, if for example the parent of the document is changed. 
+As both deletion and insertion are constant time operations, update is also O(1).\\
 
 \subsubsection{Copy-on-Write}
 \fix Rename section and move
@@ -839,8 +847,8 @@ operations, update is also O(1).\\
 This implementation is far from as efficient as the other Copy-on-Write systems described in
 Section~\ref{sec:copy-on-write} in most aspects, but more efficient in some. As the implementation
 is built upon MongoDB as persistent storage and not a pure tree structure, single nodes can be
-fetched in O(1) but when querying for subtrees they need to be built first, which takes O(log(n)),
-where n is the number of nodes in the subtree. 
+fetched in O(1) but when querying for subtrees they need to be built first, which arguable (See
+Section~\ref{sec:run_time}) takes $\theta(log(n))$, where n is the number of nodes in the subtree. 
 
 \subsubsection{Persistent storage} \label{sec:persistent_storage}
 \subsubsubsection{MongoDB}
@@ -848,13 +856,13 @@ MongoDB was chosen as the persistent storage because of its quick lookups and be
 internal storage format called BSON, which is very similar to JSON which the API is using. As the
 formats are similar, the process of marshalling and unmarshalling becomes quite easy between the
 core code, MongoDB instance and REST interface.  The second reason was that if the system needs to
-scale in the future it is very easy to distribute MongoDB and if needed the system can easily be
-migrated to Reactive Mongo, which is an asynchronous and non-blocking driver for MongoDB and can
-therefore make the system scale even further~\cite{REACTIVEMONGO}.
+scale in the future it is very easy to distribute MongoDB and, if needed, the system can easily be
+migrated to Reactive Mongo. Reactive Mongo is an asynchronous and non-blocking driver for MongoDB
+and can therefore make the system scale even further~\cite{REACTIVEMONGO}.
 
 All files are also stored directly in MongoDB with the help of GridFS. GridFS chunks the files 
 according to the size limit of MongoDB objects, which is currently 4MB. The advantage of this is 
-that backups of the Perius state is easily done through a database backup, no separate files 
+that backups of the Perius system is easily done through a database backup, no separate files 
 needs to be backed up. Another advantage that is given by this is that you can retrieve specific 
 ranges of a file, although that advantage is not needed in the Perius implementation. For
 scalability this could be used to retrieve different parts of a file from different servers, 
@@ -862,18 +870,18 @@ normal load balancing would probably work better in a system like Perius where n
 files are expected to be stored. 
 
 The disadvantage of using the GridFS approach is that when using a non-distributed database 
-it is slower to read and write to the database than reading or writing directly to the filesystem. 
+it is slower to read and write to the database than reading or writing directly to a filesystem. 
 Another disadvantage is that to access the files it is needed to go through the database layer 
-in some way, instead of accessing the filesystem.
+in some way, instead of accessing the filesystem directly.
 
 \subsubsection{API}
 \label{sec:API}
 In this work a RESTful API was implemented and used for back-end $\Iff$ front-end
 communication.
 
-REST was chosen as only basic CRUD operations needs to be performed and because the BSON format
-which is used in MongoDB is almost identical ~\cite{BSON} to the standardised JSON format which is
-usually used by RESTful services~\cite{JSON}. 
+REST was chosen as all operations can be defined as basic CRUD operations needs to be performed and
+because the BSON format which is used in MongoDB is almost identical ~\cite{BSON} to the
+standardised JSON format which is usually used by RESTful services~\cite{JSON}. 
 
 \subsubsubsection{REST Endpoints}
 For the front-end to communicate with the back-end, a RESTful service is implemented.
@@ -914,11 +922,11 @@ should present a file structure where both content and containers are shown.
 \subsection{Load Testing} \label{sec:load_testing}
 Wrk was used to load test the back-end. It is a multi-threaded benchmarking tool for HTTP which can
 create large loads. The testing was done locally on a virtual server having 6 CPU cores and 48GB of
-RAM. The results that will be analysed are latency and throughput of the server as that will give a 
-fair judgement of how well the system can perform.
+RAM. The results that will be analysed are throughputs performed without breaking the set timeout 
+of the server, as that will give a fair judgement of how well the system can perform.
 
 \subsubsection{GET requests} \label{sec:GET_REQUESTS}
-To be able to determine what is the bottleneck of the back-end three different types of \textit{GET
+To be able to determine what the bottleneck of the back-end is, three different types of \textit{GET
 requests} are performed. The first one tries to maximise the number of requests that spray-can (HTTP
 server) can handle with the given specifications and therefore the server just returns 200 (OK). The
 second request requests the simplest API call which involves getting all currently stored projects
@@ -982,7 +990,7 @@ Transfer/sec:     22.44MB
 
 Listing~\ref{OKREQUEST} shows that the HTTP server can answer about 100K requests/s when not
 involving any payload other than status code 200 (OK). When comparing that to the request which
-involved the server responding with a small (100 Byte) payload (Listing~\ref{STATICREQUEST} one can
+involved the server responding with a small (100 Byte) payload (Listing~\ref{STATICREQUEST}) one can
 see that it is about 10\% slower to send some more data, \textasciitilde90K requests/s. However when
 comparing that to the requests that needed database access it is obvious that the HTTP server can
 handle all the load that it needs to, as Listing~\ref{DBREQUEST} shows that to fetch all documents
@@ -990,8 +998,8 @@ in a collection (in this case only one) is dramatically slower, the throughput w
 \textasciitilde7000 requests/s. 
 
 \par These are very simple requests, to evaluate how much load the application can handle in its
-current state a more complex but common request has to be analysed. The most complicated and still
-common request that system is receiving is requests of a full project tree. This request is
+current state, a more complex but common request has to be analysed. The most complicated and still
+common request that the system is receiving is requests of a full project tree. This request is
 computationally expensive as the tree is not stored directly in the database but has to be built
 from the id and parent id of each container and content, a simulated project tree of similar size to
 the ones stored in the current management system reaches around 25KB in uncompressed size.
@@ -1043,10 +1051,6 @@ With caching turned on, on a single back-end, the application can theoretically 
 million active users which are not posting any content, this is simulated in 
 Listing~\ref{CACHEREQUEST}.
 
-\par
-Another simple optimisation that was added was indices on the parent ids, which are heavily queried
-when building the project trees.
-
 \begin{minipage}{\linewidth-1cm}
 \begin{lstlisting}[label=INDEXREQUEST,caption=Result of indexed project tree requests]
 wrk -t100 -c100 -d100s 
@@ -1063,19 +1067,17 @@ Transfer/sec:      0.97MB
 \end{lstlisting}
 \end{minipage}
 
-\par
-As the project tree is built by querying documents parent id an optimisation that could be done was
+\par As a project tree is built by querying documents parent id an optimisation that could be done was
 to create an index of the documents parent ids. This drastically improved the size of the tree that
 the server was able to handle within the time out, going from being able to handle 4000 documents in 
 one tree to at least 50000 documents, which the browser instead will have problems displaying, 
 represented in the UI, without lag.
 
-\par
-After adding indices, the building of the project tree was able to finish 50 times faster and the
-server was able to serve 2100 requests/s, see Listing~\ref{INDEXREQUEST}. If using the same
+\par After adding indices, the building of the project tree was able to finish 50 times faster and
+the server was able to serve 2100 requests/s, see Listing~\ref{INDEXREQUEST}. If using the same
 approximated average that was used in connection to Listing~\ref{TREEREQUEST} (30 requests/s), the
-maximum number of clients that one node can handle will be >60000, without taking the web servers
-limits or content posting into consideration.
+maximum number of active clients that one node can handle will be >60000, without taking the web
+servers limits or content posting into consideration.
 
 \subsubsection{POST requests}
 Two different POST requests will be tested, creation of containers and creation of content together
@@ -1126,7 +1128,7 @@ network.
 \subsubsection{Audit logs}
 Audit logs are used in the system to keep track of which users that perform which actions. In the
 event that somebody, consciously or unconsciously, are leaking private CDN content from within the
-organisation using Perius the audit trail can be used to find which LDAP account that was
+organisation using Perius. The audit trail can then be used to find which LDAP account that was
 responsible for the leak.
 
 \subsubsection{CDN Connections} \label{sec:cdn_connections}
@@ -1193,8 +1195,8 @@ More research could have been done in the choosing of persistent storage, as men
 actually don't need it. This is most likely true for Perius too, it would have been efficient 
 enough generating the project trees from an indexed SQL database with foreign keys. On the 
 other hand it was quite nice having the BSON documents for insertion as they were so similar 
-the accepted JSON format from the REST service. As Perius most common operations involve 
-modifying the project tree, a graph database should have been researched too.
+to the accepted JSON format from the REST service. As Perius most common operations involve 
+modifying project trees, a graph database should have been researched too.
 
 \subsection{Copy-on-Write's effect on Scalability}
 As no comparison with solutions that were not Copy-on-Write based were made, no scientific
@@ -1226,17 +1228,17 @@ The goal of this thesis was to see whether it was feasible to use Copy-on-Write 
 application (See Figure~\ref{fig:stack}). As the implementation (see
 Section~\ref{sec:implementation}) made as a part of this thesis project is already replacing its
 predecessor the simple conclusion is that it definitely is possible. In the beginning of the project
-thoughts were on having every element being operated upon in a copy-on-write fashion but this was
+thoughts were on having every element being operated upon in a Copy-on-Write fashion but this was
 later narrowed down to only have the most important part, the files, as Copy-on-Write. This was due
 to that the conclusion that it did not matter if the other elements were resolved in a
 last-write-wins manner when modified.
 
 \par If this application would be distributed with several persistent storage nodes like MongoDB,
 the application would not always be in a global consistent state as there would not be any global
-locks.  This could theoretically cause some inconvenience for the user but in all real world tests
-no users have noticed it. The theoretical inconvenience for the user was a trade-off made so that
-the application could scale on the width almost endlessly, especially if the issue with building the
-project trees is (as mentioned in Section~\ref{sec:load_testing}) solved.
+locks.  This could theoretically cause some inconvenience for the user but in all real world
+observations no users have noticed it. The theoretical inconvenience for the user was a trade-off
+made so that the application could scale on the width almost endlessly, especially if the issue with
+building the project trees is (as mentioned in Section~\ref{sec:load_testing}) solved.
 
 \par The positive effects of deploying Perius instead of its predecessor was not only about
 scaling, it also features a more secure way of handling private assets 
