@@ -142,13 +142,12 @@
 
 %}}}
 \begin{abstract}
-This work presents a technique for incorporating Copy-on-Write in the development of a high level
-system on top of an unaware persistent storage. The system in this case is a security management
-system, but the technique and conclusions drawn are general enough to be applicable to any system
-with vaguely similar consistency requirements. The scalability of the system is tested and the
-technique is evaluated and the technique is shown to be very efficient (scalable to >
-simultaneous users on a single node), but a better solution is also suggested in the
-conclusion.\\
+This work presents a technique for incorporating Copy-on-Write in a high level system on top of an
+unaware persistent storage. The system in this case is a security management system, but the
+technique and conclusions drawn are general enough to be applicable to any system with vaguely
+similar consistency requirements. The scalability of the system is tested and the technique is
+evaluated and the technique is shown to be quite efficient (scalable to >6000 simultaneous active
+users per node), but a better solution is also suggested in the conclusion.\\
 
 \keywords{CDN, Copy-on-Write, Eventual Consistency, MongoDB, Persistent Storage, Scalability, 
 Software Security}
@@ -1064,6 +1063,14 @@ Transfer/sec:      0.97MB
 \end{lstlisting}
 \end{minipage}
 
+\par
+As the project tree is built by querying documents parent id an optimisation that could be done was
+to create an index of the documents parent ids. This drastically improved the size of the tree that
+the server was able to handle within the time out, going from being able to handle 4000 documents in 
+one tree to at least 50000 documents, which the browser instead will have problems displaying, 
+represented in the UI, without lag.
+
+\par
 After adding indices, the building of the project tree was able to finish 50 times faster and the
 server was able to serve 2100 requests/s, see Listing~\ref{INDEXREQUEST}. If using the same
 approximated average that was used in connection to Listing~\ref{TREEREQUEST} (30 requests/s), the
@@ -1100,12 +1107,14 @@ be configured to accept longer data processing time, as trees as large as this f
 wont be used in production.
 
 \par
-As the project tree is built by querying documents parent id an optimisation that could be done was
-to create an index of the documents parent ids. This drastically improved the size of the tree that
-the server was able to handle within the time out, going from being able to handle 4000 documents in 
-one tree to at least 50000 documents, which the browser instead will have problems displaying, 
-represented in the UI, without lag.
+File uploads was not supported by WRK and therefore Apache Bench was used. As there is a lot of
+difference depending on the hard drive and file system when benchmarking uploads which are greater
+in size, which images usually are, no real conclusions can be drawn from this benchmark. It could
+perform about 200 POSTS/second with an image of 200KB, but it's unsure if the server could
+keep up that pace forever. If following the same example as earlier in the section with one POST per
+user every 30 seconds that would make the system able to serve 6000 active users.
 
+\newpage
 \subsection{Security of the system}
 \subsubsection{Authorization}
 The authorization of users in the system is currently being handled by LDAP~\cite{LDAP}, as Perius 
@@ -1187,7 +1196,7 @@ other hand it was quite nice having the BSON documents for insertion as they wer
 the accepted JSON format from the REST service. As Perius most common operations involve 
 modifying the project tree, a graph database should have been researched too.
 
-\subsubsection{Copy-on-Write's effect on Scalability}
+\subsection{Copy-on-Write's effect on Scalability}
 As no comparison with solutions that were not Copy-on-Write based were made, no scientific
 conclusions can be drawn from how its effect was on the scalability of the system. However some
 intuitively drawn conclusions can be suggested. If comparing to a system which uses a SQL database
@@ -1203,6 +1212,12 @@ a persistent storage that scales with eventual consistency. That implementation 
 more efficient than the current solution, with MongoDB as a persistent storage and the Copy-on-Write
 handling in the back-end code, as a lot of optimisations could be done in the database engine
 instead.
+
+\subsection{GET/POST Estimation}
+The estimation of 30 seconds/action that was made in Section~\ref{sec:load_testing} was only based
+on observation, no logging of a system used in production (as no such system existed) could be made 
+to back up that estimation. In the future those numbers can easily be recalculated, when there are
+enough metrics from a fully deployed version of Perius.
 
 \newpage
 \section{Summary}
