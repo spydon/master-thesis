@@ -657,7 +657,20 @@ need for such logic.
 This chapter introduces the different methods used to determine how the new system should be
 implemented, which DBMS it should use and how the estimation of long term scaling was done.
 \\
-\fix Fix this section, move things here and fill out with missing details
+\par As this work was not mainly about the system architecture, but rather about evaluating the
+effects of using Copy-on-Write, the decisions taken for the different technologies used were simply
+made from what the author was comfortable with and knew would have little impact on the evaluation. 
+With this said there is no comparisons of for example different databases, protocols or API
+solutions in this paper.
+
+\par The long term scaling was done by load testing the back-end with Wrk and Apache Bench. With
+the help of these tools, the computationally expensive operations could be found and it could be
+determined what the upper bound for how many active users the system could handle on a node with
+similar hardware specifications.
+
+\par A low timeout was set to make sure that the system could handle operations faster than they
+queued up. This was to be certain that the system could sustain the number of active users during a
+longer time frame without having a queue which grows beyond a manageable size.
 
 \subsection{Snapshot functionality}
 \fix Structure to compare snapshot systems and conclude how Perius snapshot system was designed
