@@ -10,6 +10,7 @@
 \usepackage{authblk}
 \usepackage{todonotes}
 \usepackage{caption}
+\usepackage{subcaption}
 \usepackage{url}
 \usepackage{float}
 \usepackage{sectsty}
@@ -24,7 +25,7 @@
 \usepackage{geometry}
 
 \usepackage{alltt}
-\usepackage{subfig}
+%\usepackage{subfig}
 
 % Change section fonts
 \allsectionsfont{\sffamily}
@@ -660,7 +661,7 @@ implemented, which DBMS it should use and how the estimation of long term scalin
 \par As this work was not mainly about the system architecture, but rather about evaluating the
 effects of using Copy-on-Write, the decisions taken for the different technologies used were simply
 made from what the author was comfortable with and knew would have little impact on the evaluation. 
-With this said there is no comparisons of for example different databases, protocols or API
+With that said there are no comparisons of for example different databases, protocols or API
 solutions in this paper.
 
 \par The long term scaling was done by load testing the back-end with Wrk and Apache Bench. With
@@ -672,21 +673,18 @@ similar hardware specifications.
 queued up. This was to be certain that the system could sustain the number of active users during a
 longer time frame without having a queue which grows beyond a manageable size.
 
-\subsection{Snapshot functionality}
-\fix Structure to compare snapshot systems and conclude how Perius snapshot system was designed
-\subsubsection{Copy-on-Write}
-\label{sec:copy-on-write}
+\subsection{Copy-on-Write} \label{sec:copy-on-write}
+This section is about how Copy-on-Write was used in Perius and how its implementation of it differs
+from other systems that incorporate Copy-on-Write.
+
+\subsubsection{Snapshot Functionality}
+The Copy-on-Write concept is not only well suited for consistency requirements, it is also works 
+well for creating snapshots.
+
 To efficiently create snapshots of a system, Copy-on-Write can be used to make it possible to create
 snapshots in O(1)\cite{BTRFS}. This is due to the fact that to create a snapshot in a system using
 Copy-on-Write you only need to reference the current nodes in the tree and make sure that they are
 not removed, see Figure~\ref{fig:btrfs_tree}.
-
-As the persistent storage, used in this implementation (Section~\ref{sec:persistent_storage}), does not
-implement transactions or locks a lot of different problems can occur when several clients are
-working on the same data set at the same time. Such problems could be race conditions or
-determining the happened-before relation. In this work this problem is solved by implementing
-Copy-on-Write.
-\fix Move last paragraph
 
 \subsubsection{Full Copy}
 Full copy or deep copy, as opposed to copy-on-write, is a copy where everything is copied directly
@@ -694,7 +692,7 @@ and not only when an object is changed. This is easier to implement but is in mo
 inefficient as more disk space will have to be used and if used with for example certain tree 
 structures the part of the tree that needs to be copied will have to be traversed. 
 
-\subsubsection{Comparison of Copy-on-Write system implementations}
+\subsubsection{Examples of Copy-on-Write system implementations}
 \subsubsubsection{BTRFS}
 Btrfs is a B-tree file system for Linux which makes use of Copy-on-Write to make it able to do
 efficient writeable snapshots and clones. It also supports cloning of subtrees without having to
@@ -719,15 +717,70 @@ physically copying memory was too slow. Too minimise the copying of memory, Copy
 implemented. It was implemented so that virtual copy operations could be done and so that tasks
 could share read-write memory~\cite{MACH}.
 
-\fix Insert more systems here and add a comparison of the systems
+\subsubsection{Perius}
+As the persistent storage, used in this implementation (Section~\ref{sec:persistent_storage}), does
+not implement transactions or locks a lot of different problems can occur when several clients are
+working on the same data set at the same time. Such problems could be race conditions or determining
+the happened-before relation. In this work this problem is solved by implementing Copy-on-Write on
+data with high consistency requirements.
 
-\subsubsection{Snapshot functionality of Perius}
-In Perius snapshots and clones are not taken in the fashion which Btrfs uses, which can be seen in
+\begin{figure}[H] 
+    \centering
+    \begin{subfigure}{.3\textwidth}
+        \centering
+        \begin{tikzpicture}[nodes={draw, circle, fill=blue!20}, -]
+            \node{C1}
+                child{node{C2} 
+                    child{node{C3}} 
+                    child{node{C4} 
+                        child{node{M1} child{node{F1}}}
+                        child{node{M2} child{node{F2}}}
+                    }
+                };
+        \end{tikzpicture}
+        \caption{Original Tree}
+        \label{fig:orignal_tree}
+    \end{subfigure}\qquad
+    \begin{subfigure}{.4\textwidth}
+        \centering
+        \begin{tikzpicture}[nodes={draw, circle, fill=blue!20}, -, level 1/.style={sibling
+             distance=28mm}, level 2/.style={sibling distance=15mm}]
+             \node{C1}
+                 child{node{C2} 
+                     child{node{C3}} 
+                     child{node{C4} 
+                         child{node{M1} child{node{F1}}}
+                         child{node{M2} child{node{F2}}}
+                     }
+                 }
+                 child{node[fill=yellow!20]{C5} 
+                     child{node[fill=yellow!20]{C6}} 
+                     child{node[fill=yellow!20]{C7} 
+                         child{node[fill=yellow!20]{M3} child{node[fill=green!20]{F1}}}
+                         child{node[fill=yellow!20]{M4} child{node[fill=green!20]{F2}}}
+                     }
+                 };
+         \end{tikzpicture}
+         \caption{Tree with C2 Snapshot}
+         \label{fig:snapshot_tree}
+    \end{subfigure}
+    \caption{Snapshot Explanation\\ C - Container, M - Content, F - File}
+    \label{fig:snapshot_expl}
+\end{figure}
+
+In Perius, snapshots and clones are not taken in the fashion which Btrfs uses, which can be seen in
 Figure~\ref{fig:btrfs_tree}. As Perius does not have the tree structure pre-built and each node is
 instead stored in a flat storage space, such operation would be too computationally expensive as
 trees would have to be merged when collisions occur, due to the non-blocking nature of the
 application. Instead this implementation makes a full copy of the meta-data of the tree, but still
-refers to the same binary files until they are changed.
+refers to the same binary files until the meta-data is changed to point to another file.
+
+Figure~\ref{fig:snapshot_expl} shows how a snapshot is performed on C2 and stored in C1, and how the
+resulting tree would look like. In Figure~\ref{fig:snapshot_tree} all of the yellow nodes are copies
+of meta-data that were in the left tree, for example C5 and C2 contain the same data (except for
+their newly generated IDs). The green nodes refer to files that have not been copied but are still
+referenced in the copied meta-data, this is due to the fact that a snapshot is not a write to the
+files and they are therefore not copied but remain intact.
 
 \fix Relate section more to comparison
 
@@ -855,8 +908,6 @@ indices might have to be updated though, if for example the parent of the docume
 As both deletion and insertion are constant time operations, update is also O(1).\\
 
 \subsubsection{Copy-on-Write}
-\fix Rename section and move
-
 This implementation is far from as efficient as the other Copy-on-Write systems described in
 Section~\ref{sec:copy-on-write} in most aspects, but more efficient in some. As the implementation
 is built upon MongoDB as persistent storage and not a pure tree structure, single nodes can be
@@ -1220,7 +1271,10 @@ transactions has to be used, which with high probability would slow down the sys
 when widely distributed. 
 The gain of having the locks or transactions would be that the system would always be
 in a fully consistent state. The loss would be that all of the database nodes would need to 
-constantly have to be fully aware of the state of the other nodes. 
+constantly have to, in some sense, be fully aware of the state of the other nodes. Sharding could be
+used to minimise the communication of state between the nodes, but that results in less fault
+tolerance and possibly higher loads on some nodes than others due to that the data most likely wont
+be accessed uniformly.
 
 \par A more interesting solution would be to not implement any Copy-on-Write system and simply use 
 a persistent storage that scales with eventual consistency. That implementation would most likely be
