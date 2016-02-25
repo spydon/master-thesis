@@ -547,7 +547,7 @@ collection will be needed. As of the conclusion in Section~\ref{sec:multiple_acc
 ~\ref{sec:conseq} there will be objects in the system that are unreferenced and can not be reached
 and should therefore be cleaned up for them not to cause negative performance effects on the system.
 
-\subsubsection{Conflict Resolution}
+\subsubsection{Conflict Resolution} \label{sec:conflict_res}
 If the persistent storage would be distributed the different database nodes would have to have rules
 set up for conflict resolution as this model does not consider what to do if the same meta data is
 modified on the nodes before they have time to synchronise. The easiest way to handle this is to
@@ -721,8 +721,9 @@ could share read-write memory~\cite{MACH}.
 As the persistent storage, used in this implementation (Section~\ref{sec:persistent_storage}), does
 not implement transactions or locks a lot of different problems can occur when several clients are
 working on the same data set at the same time. Such problems could be race conditions or determining
-the happened-before relation. In this work this problem is solved by implementing Copy-on-Write on
-data with high consistency requirements.
+the happened-before relation~\cite{LAMPORT}. In this work the race condition problem is solved by 
+implementing Copy-on-Write on data with high consistency requirements. The happened-before relation
+is not fully solved, but suggestions of how to solve it is given in Section~\ref{sec:conflict_res}.
 
 \begin{figure}[H] 
     \centering
@@ -781,8 +782,6 @@ of meta-data that were in the left tree, for example C5 and C2 contain the same 
 their newly generated IDs). The green nodes refer to files that have not been copied but are still
 referenced in the copied meta-data, this is due to the fact that a snapshot is not a write to the
 files and they are therefore not copied but remain intact.
-
-\fix Relate section more to comparison
 
 \subsection{Resulting system}
 \subsubsection{Perius}
