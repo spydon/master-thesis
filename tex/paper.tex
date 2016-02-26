@@ -170,15 +170,15 @@ Developing large projects containing static content usually involves using a Con
 Network to be able to scale to a larger user base. The commercial Content Distribution Networks are
 usually fairly easy to use, the content that is to be used in a project is usually simply uploaded
 and then distributed over the globe when the public requests it. For secret content this can be a
-problem and an inconvenience, and that is what this thesis is about. This work examines ways of
+problem and an inconvenience, and that is what this thesis is about. This work examines a way of
 enforcing virtual access control on content and groups of content, in the form of containers and
-snapshots. A system was developed to make the underlying theory work in practice. 
+snapshots. A system was developed using the Copy-on-Write principle to improve scalability and make
+it a lighter operation to take snapshots. 
 
 The research question that this report tries to answers is how and whether it is practically 
 feasible to use Copy-on-Write for a high-level system like the one that is implemented and how 
 it can effect the systems scalability. 
 
-\fix Clarify problem definition and research questions
 \newpage
 \section{Background}
 This section gives the reader some background of the company where the thesis was written and
@@ -206,8 +206,6 @@ copied until one of the processes makes changes to it. This is an optimisation a
 not have to send or copy all of the related data that is in memory, rather they only have to send
 pointers to the data. After many Copy-on-Writes a complex tree structure can be built up, but
 optimisations can be done to simplify that structure~\cite{COPYONWRITE2}.
-
-\fix Polish and extend
 
 \newpage
 \subsection{Related Terminology}
