@@ -424,8 +424,6 @@ its content still refers to the same files.
 If a user deletes content, the file referred to in the content is not deleted.
 
 \subsection{Interaction of Multiple Accesses} \label{sec:multiple_access}
-\fix Rename consequence?
-\\
 As a result of consequence~\ref{eq:contentupdate} and~\ref{eq:containerupdate} in
 Section~\ref{sec:conseq} there can be race conditions where the last write wins. This could be
 solved by locks or transactions, but as updates are not based on each other, the trade-off for this
@@ -448,8 +446,6 @@ parent, thus creating a separate tree that can not be reached from the root node
 These type of inconveniences should also be cleaned up by the garbage collector.
 
 \subsection{JPF}
-\fix Not sure where to put this section
-
 JPF was used to test the idea and state transitioning of the model. It is a very simplified
 version of the real system that still contains all the important Copy-on-Write concepts and the 
 assumptions that have been made in the model. This simplified version was then used to automatically
@@ -616,18 +612,21 @@ parts of the stack to support the features that Perius has to achieve, in this w
 highest layer is considered, the Perius back-end.
 
 \subsection{Related Technologies}
-\subsubsection{React}
+\subsubsection{React} \label{sec:react}
 React is a JavaScript library for building user interfaces. React uses both its own virtual DOM and
 the browser's normal DOM, this makes it able to efficiently update dynamic web pages after a change
 of state through comparing the old virtual DOM with the resulting virtual DOM after the state change
 and then only update the browser's DOM according to the delta between the virtual DOMs~\cite{REACT}.
-React can be seen as the system for handling views in front-ends implementing a MVC
-(Model-View-Controller) architecture.
+React can be seen as the system for handling views in front-ends implementing a MVC-like
+(Model-View-Controller) architecture. In this work React is used as a part of building the
+front-end.
 
-\subsubsection{Reflux}
+\subsubsection{Reflux} \label{sec:reflux}
 Reflux~\cite{REFLUX} is an idea and a simple library of how to structure your application. It
 features a unidirectional dataflow (see Figure~\ref{fig:reflux}) which makes it more suitable, than
-for example Flux~\cite{FLUX}, when using a functional reactive programming style.
+for example Flux~\cite{FLUX}, when using a functional reactive programming style. Reflux is used
+together with React (see Section~\ref{sec:react}) for this implementation to define a structure of
+the flow of data and state changes.
 
 \begin{figure}[H] 
     \centering
@@ -636,22 +635,31 @@ for example Flux~\cite{FLUX}, when using a functional reactive programming style
     \label{fig:reflux}
 \end{figure}
 
-\subsubsection{Scala} 
+\subsubsection{Scala} \label{sec:scala}
 Scala is a multi-paradigm programming language. It most commonly runs on the JVM and unlike
 Java it supports most functional programming features at the same time as it supports 
-object-oriented programming~\cite{SCALA}.  
+object-oriented programming~\cite{SCALA}. Scala is used to program the back-end and the Spray
+toolkit (see Section~\ref{sec:spray}) is used with it to simplify the API.
 
-\subsubsection{REST} 
+\subsubsection{REST} \label{sec:rest}
 REST stands for representational state transfer, it is an architectural idea for writing stateless
 services. These services usually use URIs to identify specific resources and HTTP to modify or query
 these resources~\cite{REST}. 
 
-\subsubsection{MongoDB}
+\subsubsection{Spray} \label{sec:spray}
+Spray~\cite{CASBAH} is an open-source toolkit written in Scala and for Scala (see
+section~\ref{sec:scala}). It is used to make it easier to build REST/HTTP APIs (see
+section~\ref{sec:rest}) and those abilities is what it is used in the implementation (see
+section~\ref{sec:api}).
+
+\subsubsection{MongoDB} \label{sec:spray}
 MongoDB is a document-oriented database, which means that it does not have the concept of rows as
 normal relational databases has. Instead each entity in the database is stored as a document which
 is not fixed to a predefined table structure~\cite{MONGODB}. MongoDB lacks the support for joins to
 improve its possibility to scale, which can be a big downside to some applications containing the
-need for such logic.
+need for such logic. MongoDB is used as a persistent storage for the back-end to store all the
+projects and nodes in the tree structures and also the files uploaded to the system. Scala (see
+Section~\ref{sec:scala}) uses a layer called Casbah~\cite{CASBAH} to interface with MongoDB.
 
 \subsection{Methods for determining\\implementation details}
 This chapter introduces the different methods used to determine how the new system should be
@@ -937,8 +945,7 @@ it is slower to read and write to the database than reading or writing directly 
 Another disadvantage is that to access the files it is needed to go through the database layer 
 in some way, instead of accessing the filesystem directly.
 
-\subsubsection{API}
-\label{sec:API}
+\subsubsection{API} \label{sec:API}
 In this work a RESTful API was implemented and used for back-end $\Iff$ front-end
 communication.
 
