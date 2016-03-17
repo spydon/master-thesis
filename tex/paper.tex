@@ -949,9 +949,10 @@ in some way, instead of accessing the filesystem directly.
 In this work a RESTful API was implemented and used for back-end $\Iff$ front-end
 communication.
 
-REST was chosen as all operations can be defined as basic CRUD operations needs to be performed and
-because the BSON format which is used in MongoDB is almost identical ~\cite{BSON} to the
-standardised JSON format which is usually used by RESTful services~\cite{JSON}. 
+REST (see Section~\ref{sec:rest} was chosen as all operations can be defined as basic CRUD
+operations needs to be performed and because the BSON format which is used in MongoDB is almost
+identical ~\cite{BSON} to the standardised JSON format which is usually used by RESTful
+services~\cite{JSON}. 
 
 \subsubsubsection{REST Endpoints}
 For the front-end to communicate with the back-end, a RESTful service is implemented.
@@ -1023,6 +1024,9 @@ Running 2m test @ http://perius:8000/ok
   10345746 requests in 1.67m, 1.69GB read
 Requests/sec: 103353.85
 Transfer/sec:     17.25MB
+
+Response data:
+200 OK
 \end{lstlisting}
 \end{minipage}
 
@@ -1039,6 +1043,14 @@ Running 2m test @ http://perius:8000/projects
   726351 requests in 1.67m, 196.03MB read
 Requests/sec:   7256.38
 Transfer/sec:      1.96MB
+
+Response data:
+[{
+  "id": "565cdae1898b798008105fd47",
+  "name": Test Project,
+  "readOnly": false,
+  "lastModified": 1456320024643
+}]
 \end{lstlisting}
 \end{minipage}
 
@@ -1054,6 +1066,11 @@ Running 2m test @ http://perius:8000/static
   9199737 requests in 1.67m, 2.19GB read
 Requests/sec:  91902.48
 Transfer/sec:     22.44MB
+
+Response data:
+Static test data for WRK not involving MongoDB 
+or filesystem access. 
+Lorem ipsum dolor sit amet.
 \end{lstlisting}
 \end{minipage}
 \end{custommargins}
@@ -1076,9 +1093,9 @@ the ones stored in the current management system reaches around 25KB in uncompre
 
 \begin{minipage}{\linewidth-1cm}
 \begin{lstlisting}[label=TREEREQUEST,caption=Result of project tree requests]
-wrk -t10 -c10 -d10s http://perius:8000/projects/56a5f...
+wrk -t10 -c10 -d10s http://perius:8000/projects/56...
  
-Running 10s test @ http://perius:8000/projects/56a5f...
+Running 10s test @ http://perius:8000/projects/56...
   10 threads and 10 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
     Latency   247.54ms   21.64ms 323.78ms   96.76%
@@ -1086,6 +1103,39 @@ Running 10s test @ http://perius:8000/projects/56a5f...
   401 requests in 10.07s, 9.67MB read
 Requests/sec:     39.82
 Transfer/sec:      0.96MB
+
+Response data:
+{
+  "parent": "",
+  "name": "Test Project",
+  "readOnly": false,
+  "lastModified": 1456320024643,
+  "id": "56cdae1898b798008105fd47",
+  "containers": [{
+    "parent": "56cdae1898b798008105fd47",
+    "name": "Upload stuff",
+    "readOnly": false,
+    "lastModified": 0,
+    "id": "56cdae2298b798008105fd48",
+    "containers": [],
+    "content": [{
+      "fileId": "56cdae2d98b798008105fd49",
+      "parent": "56cdae2298b798008105fd48",
+      "size": 35245,
+      "readOnly": false,
+      "lastModified": 1456320045336,
+      "tags": [],
+      "cdnLinks": [],
+      "id": "56cdae2d98b798008105fd4b",
+      "filename": "newtree.png",
+      "dimensions": [1088, 369],
+      "originalId": "56cdae2d98b798008105fd4b"
+    }, ...]
+  }],
+  "content": [{
+    ...
+  }]
+}
 \end{lstlisting}
 \end{minipage}
 
@@ -1113,6 +1163,9 @@ Running 2m test @
   8343565 requests in 1.67m, 17.03GB read
 Requests/sec:  83352.77
 Transfer/sec:    174.17MB
+
+Response data:
+Same as in Listing 5
 \end{lstlisting}
 \end{minipage}
 
@@ -1134,6 +1187,9 @@ Running 10s test @ http://perius:8000/projects/56a...
   21271 requests in 10.10s, 9.76MB read
 Requests/sec:   2105.82
 Transfer/sec:      0.97MB
+
+Response data:
+Same as in Listing 5
 \end{lstlisting}
 \end{minipage}
 
@@ -1167,6 +1223,15 @@ Running 4s test @
   16357 requests in 4.10s, 5.04MB read
 Requests/sec:   3990.12
 Transfer/sec:      1.23MB
+
+Response data:
+{
+  "id": "56cdae2298b798008105fd48",
+  "parent": "56cdae1898b798008105fd47",
+  "name": "Upload",
+  "readOnly": false,
+  "lastModified": 1456320045336,
+}
 \end{lstlisting}
 \end{minipage}
 
@@ -1380,3 +1445,4 @@ properly follow the Reflux streamlining.
 %described in Section 5
 
 %}}}
+
