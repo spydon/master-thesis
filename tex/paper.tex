@@ -322,12 +322,17 @@ A computer system or subsystem is defined as possessing the property of integrit
 according to a defined standard. This implies that a subsystem possessing the property of integrity
 does not guarantee an absolute behaviour of the system, but rather that it performs according to
 what its creator intended ~\cite{BIBA}.
+\\
+The invariant for this model is the file. Which means that it shouldn't be possible to
+change a file though out the cycle of operation without creating a new file object with a new
+identifier. This is to ensure that files can not lose their integrity by simultaneous
+operations from different nodes or get mixed up when referred to from a content object. 
 
 \subsection{Initial Assumptions}
-To create an integrity model, some initial assumptions have to be made about what the correct behaviour
-of the system is, which the model then can be shown to follow. In this work unintentional behaviour
-as the result of data modification is the main concern, which could be used for sabotage or simply be the
-effect unintentional unfortunate race conditions etc. 
+To create an integrity model, some initial assumptions have to be made about what the correct
+behaviour of the system is, which the model then can be shown to follow. In this work unintentional
+behaviour as the result of data modification is the main concern, which could be used for sabotage
+or simply be the effect unintentional unfortunate race conditions etc. 
 
 \subsection{Integrity Threats}
 According to Biba et. al~\cite{BIBA} one can consider two threat sources, namely subsystem external
@@ -1003,9 +1008,11 @@ server) can handle with the given specifications and therefore the server just r
 second request requests the simplest API call which involves getting all currently stored projects
 from the MongoDB instance. As this involves the server answering with some payload, the third
 request is simply the same amount of static payload as the second request but without involving any
-connections to MongoDB.
+connections to MongoDB. Most responses are JSON structures, except for the ones in
+Listing~\ref{OKREQUEST} and Listing~\ref{STATICREQUEST}.\\
+
 \par
-The typical requests with Wrk in this work will look similar to this:
+The typical requests performed with Wrk in this work will look similar to this:
 \begin{lstlisting}[frame=single]
 wrk -t100 -c100 -d10s http://perius:8000/ok
 \end{lstlisting}
