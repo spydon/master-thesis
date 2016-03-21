@@ -1372,6 +1372,13 @@ more efficient than the current solution, with MongoDB as a persistent storage a
 handling in the back-end code, as a lot of optimisations could be done in the database engine
 instead.
 
+\subsection{Branching}
+Branching was also implemented in Perius, but to not make the report too wide it was not included.
+The branching worked by the user selecting a container that the branch should be based on and a
+container in which the branch should be places. The user could then choose which containers and
+content that it wanted to update with the origin source of and which objects that should be deep
+copied to the new branch.
+
 \subsection{GET/POST Estimation}
 The estimation of 30 seconds/action that was made in Section~\ref{sec:load_testing} was only based
 on observation, no logging of a system used in production (as no such system existed) could be made 
