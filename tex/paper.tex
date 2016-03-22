@@ -627,7 +627,10 @@ be examined. Theoretically the Copy-on-Write features could be implemented in an
 parts of the stack to support the features that Perius has to achieve, in this work only the second
 highest layer is considered, the Perius back-end.
 
-\subsection{Architecture and Technologies used}
+\subsection{Architecture and Technologies used} \label{sec:tech}
+This section introduces the different technologies used in the implementation. The section also
+contains motivations and explanations why certain technologies were chosen and briefly outlines the
+software architecture. 
 
 \begin{figure}[H] 
     \centering{
@@ -636,9 +639,23 @@ highest layer is considered, the Perius back-end.
     \caption{Technology Stack}
     \label{fig:tech_stack}
 \end{figure}
+Figure~\ref{fig:tech_stack} shows how the different technologies used are related. In the Figure, 
+the technologies that are indented are built on top of its parent. The arrows that can be seen is
+the flow of data after a request from the front-end has been made. The arrows are unidirectional,
+but the response follows the same path back to the requester.
 
 \begin{description}
-\item[React]% \hfill \\ % \label{sec:react}
+
+\item[Javascript]
+\fix Add description
+
+\item[SuperAgent]
+\fix Add citation to SuperAgent
+is a small HTTP request library which can be used from client-side Javascript or as a node.js
+module. It is used to form the requests to the REST API from the front-end, which can be seen in
+Figure~\ref{fig:tech_stack} (Arrow 1 and 2).
+
+\item[React]
 is a JavaScript library for building user interfaces. React uses both its own virtual DOM and
 the browser's normal DOM, this makes it able to efficiently update dynamic web pages after a change
 of state through comparing the old virtual DOM with the resulting virtual DOM after the state change
@@ -672,6 +689,49 @@ stands for representational state transfer, it is an architectural idea for writ
 services. These services usually use URIs to identify specific resources and HTTP to modify or query
 these resources~\cite{REST}. 
 
+In this work a RESTful API was implemented and used for back-end $\Iff$ front-end
+communication, which can be seen in Figure~\ref{fig:tech_stack} (Arrow 1 and 2).
+
+REST was chosen as all operations that needs to be performed can be defined as basic CRUD operations
+and because the BSON format which is used in MongoDB is almost identical ~\cite{BSON} to the
+standardised JSON format which is usually used by RESTful services~\cite{JSON}. 
+
+\hfill \\
+\textbf{REST Endpoints} \hfill \\
+For the front-end to communicate with the back-end, a RESTful service is implemented.
+The following endpoints were configured:
+
+\begin{itemize}
+  \item projects
+      \subitem GET - list all projects
+      \subitem POST - create new project
+  \item projects/\{id\}
+      \subitem GET - get specific project
+      \subitem PUT - update existing project
+      \subitem DELETE - delete existing project
+  \item projects/\{id\}/content
+      \subitem POST - create new content in a specific project 
+  \item projects/\{id\}/content/\{id\}
+      \subitem GET - get specific content in a specific project
+      \subitem PUT - update existing content in a specific project
+      \subitem DELETE - delete existing content in a specific project
+
+  \item projects/\{id\}/snapshots
+      \subitem POST - create new snapshot in a specific project 
+
+  \item projects/\{id\}/containers
+      \subitem POST - create new container in a specific project 
+  \item projects/\{id\}/containers/\{id\}
+      \subitem GET - get specific container in a specific project
+      \subitem PUT - update existing container
+      \subitem DELETE - delete existing container
+\end{itemize}
+
+As can be seen several expected endpoints are missing, this is intentional as the operations missing
+can be performed in a more efficient way. Such endpoint is for example \textit{GET 
+projects/\{id\}/containers} as all containers exist in \textit{GET projects/\{id\}} and the interface
+should present a file structure where both content and containers are shown.
+
 % \hfill \\ %\label{sec:spray}
 \item[Spray]~\cite{CASBAH} % Spray in casbah book
 is an open-source toolkit written in Scala and for Scala. It is used to make it easier to build
@@ -683,8 +743,32 @@ normal relational databases has. Instead each entity in the database is stored a
 is not fixed to a predefined table structure~\cite{MONGODB}. MongoDB lacks the support for joins to
 improve its possibility to scale, which can be a big downside to some applications containing the
 need for such logic. MongoDB is used as a persistent storage for the back-end to store all the
-projects and nodes in the tree structures and also the files uploaded to the system. Scala uses a
-layer called Casbah~\cite{CASBAH} to interface with MongoDB.
+projects and nodes in the tree structures and also the files uploaded to the system. The Scala logic
+code uses a layer called Casbah~\cite{CASBAH} to interface with MongoDB, which can be seen in
+Figure~\ref{fig:tech_stack} (Arrow 4 and 5).
+
+\par MongoDB was chosen as the persistent storage because of its quick lookups and because of its
+internal storage format called BSON, which is very similar to JSON which the API is using. As the
+formats are similar, the process of marshalling and unmarshalling becomes quite easy between the
+core code, MongoDB instance and REST interface.  The second reason was that if the system needs to
+scale in the future it is very easy to distribute MongoDB and, if needed, the system can easily be
+migrated to Reactive Mongo. Reactive Mongo is an asynchronous and non-blocking driver for MongoDB
+and can therefore make the system scale even further~\cite{REACTIVEMONGO}.
+
+\par All files are also stored directly in MongoDB with the help of GridFS. GridFS chunks the files 
+according to the size limit of MongoDB objects, which is currently 4MB. The advantage of this is 
+that backups of the Perius system is easily done through a database backup, no separate files 
+needs to be backed up. Another advantage that is given by this is that you can retrieve specific 
+ranges of a file, although that advantage is not needed in the Perius implementation. For
+scalability this could be used to retrieve different parts of a file from different servers, 
+normal load balancing would probably work better in a system like Perius where no extremely large 
+files are expected to be stored. 
+
+\par The disadvantage of using the GridFS approach is that when using a non-distributed database 
+it is slower to read and write to the database than reading or writing directly to a filesystem. 
+Another disadvantage is that to access the files it is needed to go through the database layer 
+in some way, instead of accessing the filesystem directly.
+
 
 \end{description}
 \subsection{Methods for determining\\implementation details}
@@ -752,7 +836,7 @@ implemented. It was implemented so that virtual copy operations could be done an
 could share read-write memory~\cite{MACH}.
 
 \subsubsection{Perius}
-As the persistent storage, used in this implementation (Section~\ref{sec:persistent_storage}), does
+As the persistent storage, used in this implementation (Section~\ref{sec:tech}), does
 not implement transactions or locks a lot of different problems can occur when several clients are
 working on the same data set at the same time. Such problems could be race conditions or determining
 the happened-before relation~\cite{LAMPORT}. In this work the race condition problem is solved by 
@@ -948,73 +1032,6 @@ fetched in O(1) but when querying for subtrees they need to be built first, whic
 Section~\ref{sec:run_time}) takes $\theta(log(n))$, where n is the number of nodes in the subtree. 
 
 \subsubsection{Persistent storage} \label{sec:persistent_storage}
-\subsubsubsection{MongoDB}
-MongoDB was chosen as the persistent storage because of its quick lookups and because of its
-internal storage format called BSON, which is very similar to JSON which the API is using. As the
-formats are similar, the process of marshalling and unmarshalling becomes quite easy between the
-core code, MongoDB instance and REST interface.  The second reason was that if the system needs to
-scale in the future it is very easy to distribute MongoDB and, if needed, the system can easily be
-migrated to Reactive Mongo. Reactive Mongo is an asynchronous and non-blocking driver for MongoDB
-and can therefore make the system scale even further~\cite{REACTIVEMONGO}.
-
-All files are also stored directly in MongoDB with the help of GridFS. GridFS chunks the files 
-according to the size limit of MongoDB objects, which is currently 4MB. The advantage of this is 
-that backups of the Perius system is easily done through a database backup, no separate files 
-needs to be backed up. Another advantage that is given by this is that you can retrieve specific 
-ranges of a file, although that advantage is not needed in the Perius implementation. For
-scalability this could be used to retrieve different parts of a file from different servers, 
-normal load balancing would probably work better in a system like Perius where no extremely large 
-files are expected to be stored. 
-
-The disadvantage of using the GridFS approach is that when using a non-distributed database 
-it is slower to read and write to the database than reading or writing directly to a filesystem. 
-Another disadvantage is that to access the files it is needed to go through the database layer 
-in some way, instead of accessing the filesystem directly.
-
-\subsubsection{API} \label{sec:API}
-In this work a RESTful API was implemented and used for back-end $\Iff$ front-end
-communication.
-
-REST (see Section~\ref{sec:rest} was chosen as all operations can be defined as basic CRUD
-operations needs to be performed and because the BSON format which is used in MongoDB is almost
-identical ~\cite{BSON} to the standardised JSON format which is usually used by RESTful
-services~\cite{JSON}. 
-
-\subsubsubsection{REST Endpoints}
-For the front-end to communicate with the back-end, a RESTful service is implemented.
-The following endpoints were configured:
-
-\begin{itemize}
-  \item projects
-      \subitem GET - list all projects
-      \subitem POST - create new project
-  \item projects/\{id\}
-      \subitem GET - get specific project
-      \subitem PUT - update existing project
-      \subitem DELETE - delete existing project
-  \item projects/\{id\}/content
-      \subitem POST - create new content in a specific project 
-  \item projects/\{id\}/content/\{id\}
-      \subitem GET - get specific content in a specific project
-      \subitem PUT - update existing content in a specific project
-      \subitem DELETE - delete existing content in a specific project
-
-  \item projects/\{id\}/snapshots
-      \subitem POST - create new snapshot in a specific project 
-
-  \item projects/\{id\}/containers
-      \subitem POST - create new container in a specific project 
-  \item projects/\{id\}/containers/\{id\}
-      \subitem GET - get specific container in a specific project
-      \subitem PUT - update existing container
-      \subitem DELETE - delete existing container
-\end{itemize}
-
-As can be seen several expected endpoints are missing, this is intentional as the operations missing
-can be performed in a more efficient way. Such endpoint is for example \textit{GET 
-projects/\{id\}/containers} as all containers exist in \textit{GET projects/\{id\}} and the interface
-should present a file structure where both content and containers are shown.
-
 \newpage
 \subsection{Load Testing} \label{sec:load_testing}
 Wrk was used to load test the back-end. It is a multi-threaded benchmarking tool for HTTP which can
