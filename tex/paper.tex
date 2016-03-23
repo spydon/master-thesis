@@ -647,13 +647,16 @@ but the response follows the same path back to the requester.
 \begin{description}
 
 \item[Javascript]
-\fix Add description
+is a programming language mainly focussed on running code in web browsers~\cite{JAVASCRIPT}. In this
+implementation the ECMAScript 6 (ES6) language specification is used, which adds a lot of syntactic
+sugar compared to what usually is called normal JavaScript. An example of such syntactic sugar is
+lambda expressions. React and Reflux are both built with JavaScript in mind and is used on top of
+JavaScript is this implementation, as can be seen in Figure~\ref{fig:tech_stack}. 
 
 \item[SuperAgent]
-\fix Add citation to SuperAgent
 is a small HTTP request library which can be used from client-side Javascript or as a node.js
-module. It is used to form the requests to the REST API from the front-end, which can be seen in
-Figure~\ref{fig:tech_stack} (Arrow 1 and 2).
+module~\cite{SUPERAGENT}. It is used to form the requests to the REST API from the front-end, which
+can be seen in Figure~\ref{fig:tech_stack} (Arrow 1 and 2).
 
 \item[React]
 is a JavaScript library for building user interfaces. React uses both its own virtual DOM and
@@ -664,10 +667,9 @@ React can be seen as the system for handling views in front-ends implementing a 
 (Model-View-Controller) architecture. In this work React is used as a part of building the
 front-end.
 
-% \hfill \\ % \label{sec:reflux}
-\item[Reflux]~\cite{REFLUX} 
-is an idea and a simple library of how to structure your application. It features a unidirectional
-dataflow (see Figure~\ref{fig:reflux}) which makes it more suitable, than for example
+\item[Reflux] 
+is an idea and a simple library of how to structure your application~\cite{REFLUX}. It features a
+unidirectional dataflow (see Figure~\ref{fig:reflux}) which makes it more suitable, than for example
 Flux~\cite{FLUX}, when using a functional reactive programming style. Reflux is used together with
 React for this implementation to define a structure of the flow of data and state changes.
 
@@ -678,13 +680,13 @@ React for this implementation to define a structure of the flow of data and stat
     \label{fig:reflux}
 \end{figure}
 
-\item[Scala]% \hfill \\ %\label{sec:scala}
+\item[Scala]
 is a multi-paradigm programming language. It most commonly runs on the JVM and unlike Java it
 supports most functional programming features at the same time as it supports object-oriented
 programming~\cite{SCALA}. Scala is used to program the back-end and the Spray toolkit is used with
 it to simplify the API.
 
-\item[REST]% \hfill \\ %\label{sec:rest}
+\item[REST]
 stands for representational state transfer, it is an architectural idea for writing stateless
 services. These services usually use URIs to identify specific resources and HTTP to modify or query
 these resources~\cite{REST}. 
