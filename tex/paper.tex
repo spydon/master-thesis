@@ -180,7 +180,7 @@ But when that game later moves into an open beta phase (open for public), the co
 publicly accessible. 
 
 As large projects most often are divided into different dividable parts, a concept called containers
-is introduced in this work. Containers can contain more containers and content and when
+is introduced in this work. Containers can contain more containers and content, and when
 modifying the security settings for a container it is applied recursively to all its content and
 sub-containers.
 
@@ -1366,14 +1366,7 @@ companies internet access is based on a set of public static IP addresses and th
 content from ever being accessed outside of that controlled network.
 
 \subsection{Findings}
-\subsubsection{Scalability}
-When using the ReactiveMongo driver~\cite{REACTIVEMONGO}, which is asynchronous and non-blocking, 
-the application has no limits of how much load and users it can handle as the hardware and nodes 
-can be scaled up linearly when needed. With Cashbah~\cite{CASBAH}, which is used with the current 
-implementation, it is harder to scale to the enormous amounts of load which ReactiveMongo can 
-support as Casbah is synchronous and has blocking IO. For this work the kind of scalability which 
-is offered by ReactiveMongo is not needed as the load will not reach the peak, as discussed in 
-Section~\ref{sec:GET_REQUESTS}, for what Casbah can handle on a single server. 
+This section presents the relevant findings derived from the implementation and testing of it.  
 
 \subsubsection{Security}
 The greatest security improvement of Perius compared to its predecessor Battlebinary is not the
@@ -1384,6 +1377,15 @@ accessible from where it should be. In Battlebinary the content was secured by a
 hash of the file (see Section~\ref{sec:current_system}) to the filename that it was uploaded with, 
 which resulted in a URL on the CDN that was not guessable but if the link somehow leaked the 
 content that the link referred to would be open to anyone.
+
+\subsubsection{Scalability}
+When using the ReactiveMongo driver~\cite{REACTIVEMONGO}, which is asynchronous and non-blocking, 
+the application has no limits of how much load and users it can handle as the hardware and nodes 
+can be scaled up linearly when needed. With Cashbah~\cite{CASBAH}, which is used with the current 
+implementation, it is harder to scale to the enormous amounts of load which ReactiveMongo can 
+support as Casbah is synchronous and has blocking IO. For this work the kind of scalability which 
+is offered by ReactiveMongo is not needed as the load will not reach the peak, as discussed in 
+Section~\ref{sec:GET_REQUESTS}, for what Casbah can handle on a single server. 
 
 \subsubsection{Load Testing}
 Section~\ref{sec:load_testing}, specifically Listing~\ref{OKREQUEST}, shows that the HTTP server can
@@ -1409,7 +1411,6 @@ computationally efficient, which was not tried. The third presented solution was
 keys that were often queried in MongoDB. The third solution yielded the best results and made Perius
 being able to serve 2100 requests/s, which involved building the project tree. A combination of
 solution one and three could possibly make Perius able to serve even more requests per second.
-
 
 \newpage
 \section{Discussion}
