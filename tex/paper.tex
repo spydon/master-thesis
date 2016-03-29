@@ -125,7 +125,7 @@
 \providecommand{\keywords}[1]{\textbf{\textit{Keywords: }} #1}
 
 %}}}
-\title{\textbf{Perius: A Security Management Layer with Copy-on-Write for CDN Assets}}
+\title{\textbf{Providing Access Control and Copy-on-Write for Content Distribution Network Assets}}
 \author{Klingsbo, Lukas}
 
 %{{{
@@ -224,6 +224,13 @@ copied until one of the processes makes changes to it. This is an optimisation a
 not have to send or copy all of the related data that is in memory, rather they only have to send
 pointers to the data. After many Copy-on-Writes a complex tree structure can be built up, but
 optimisations can be done to simplify that structure~\cite{COPYONWRITE2}.
+
+\subsubsection{Snapshots}
+Several filesystems~\cite{BTRFS}\cite{ZFS} use snapshot techniques to make it possible for a user
+or system to roll back the filesystems state, to a state that the filesystem had at the time of
+snapshot creation. This can be useful for example when having a stable system and then doing a
+system update, if the system does not respond well to the update the filesystem can be rolled
+back to its previous stable state, provided that a snapshot was created before the update procedure.
 
 \newpage
 \subsection{Related Terminology}
@@ -544,7 +551,8 @@ be iterated over concurrently.
 JPF checked each permutation of states, to a certain depth, that the threads can end up in and the 
 result of the run can be seen in Listing~\ref{JPFRESULT}.
 
-\begin{lstlisting}[label=JPFRESULT,caption=Results of JPF run]
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[label=JPFRESULT,caption=Results of JPF run]%,float,floatplacement=H]
 elapsed time:       14:26:53
 states:             new=160853259,
                     visited=451102505,
@@ -570,6 +578,7 @@ max memory:         6256MB
 loaded code:        classes=111,
                     methods=2179
 \end{lstlisting}
+\end{minipage}
 
 \subsection{Findings}
 This section summarises the findings from the work on the model. 
@@ -1392,12 +1401,19 @@ The greatest security improvement of Perius compared to its predecessor Battlebi
 security of the system itself but rather how Perius handles the contents security settings on the
 CDN providers. Perius uses several of the security features for private content that the CDN
 providers offer (see Section~\ref{sec:private_content}) to make sure that the content only is
-accessible from where it should be. In Battlebinary the content was secured by adding a part of the
-hash of the file (see Section~\ref{sec:current_system}) to the filename that it was uploaded with, 
-which resulted in a URL on the CDN that was not guessable but if the link somehow leaked the 
-content that the link referred to would be open to anyone.
+accessible from where it should be. In Perius it is possible to have three different modes for a CDN
+asset; public to all, only accessible from certain IP ranges or only accessible by clients using a
+signed URL or cookie. In Battlebinary the content was secured by adding a part of the hash of the
+file (see Section~\ref{sec:current_system}) to the filename that it was uploaded with, which
+resulted in a URL on the CDN that was not guessable but if the link somehow leaked the content that
+the link referred to would be open to anyone.
 
+\newgeometry{top=4cm}
 \subsubsection{Scalability}
+Perius uses MongoDB as its persistent storage and all computationally expensive operations involve
+doing calls to it. Scala currently has two popular drivers for interaction with MongoDB, namely
+Casbah and ReactiveMongo.
+
 When using the ReactiveMongo driver~\cite{REACTIVEMONGO}, which is asynchronous and non-blocking, 
 the application has no limits of how much load and users it can handle as the hardware and nodes 
 can be scaled up linearly when needed. With Cashbah~\cite{CASBAH}, which is used with the current 
@@ -1417,7 +1433,7 @@ Listing~\ref{DBREQUEST} shows that to fetch all documents in a collection (in th
 dramatically slower, the throughput was only \textasciitilde7000 requests/s. 
 
 \par These are very simple requests, to evaluate how much load the application can handle in its
-current state, a more complex but common request has to be analysed. The most complicated and still
+current state, a more complex but common request was analysed. The most complicated and still
 common request that the system is receiving is requests of a full project tree. This request is
 computationally expensive as the tree is not stored directly in the database but has to be built
 from the ID and parent ID of each container and content. A simulated project tree of similar size to
@@ -1431,6 +1447,7 @@ keys that were often queried in MongoDB. The third solution yielded the best res
 being able to serve 2100 requests/s, which involved building the project tree. A combination of
 solution one and three could possibly make Perius able to serve even more requests per second.
 
+\restoregeometry
 \newpage
 \section{Discussion}
 This chapter contains informal discussions about topics that were not covered by the rest of the
