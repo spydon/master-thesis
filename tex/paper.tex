@@ -207,6 +207,9 @@ application called BattleLog, which is a companion for the BattleField game seri
 currently working on is unfortunately classified.
 
 \subsection{Prior Work}
+The \textit{Prior Work} section goes through the related work that has already been made within the
+area and which this thesis is based on.
+
 \subsubsection{Copy-on-Write}
 This work relies heavily on the Copy-on-Write principle, which was founded and used in the Mach
 kernel~\cite{COPYONWRITE}, as it can be used to efficiently create snapshots and help solving
@@ -311,6 +314,10 @@ basically just metadata and not classed as important as the actual files themsel
 integrity point of view.
 
 \subsection{Elements of the Model}
+In this section we show the elements of the model, identify the different sets and explain how they
+should be interpreted. This is done in the same way as in \textit{Secure Computer Systems: Mathematical
+Foundations}~\cite{BLP1} by Bell \& LaPadula.
+
 \begin{center}
     \begin{tabular}{ | l | l | l | p{5cm} |}
         \hline
@@ -565,7 +572,8 @@ loaded code:        classes=111,
 \end{lstlisting}
 
 \subsection{Findings}
-\fix Add more findings
+This section summarises the findings from the work on the model. 
+
 \subsubsection{Garbage Collection}
 For the system to reach a clean state and the decided eventual consistency~\cite{KLINGSBO}, garbage
 collection will be needed. As of the conclusion in Section~\ref{sec:multiple_access} from Section
@@ -581,6 +589,7 @@ only consider the newest data if there is a conflict. This will have the same re
 modification with a single database node with this model, namely last write
 wins~\cite{LASTWRITEWINS}.
 
+\fix Add more findings
 \newpage 
 \section{Implementation} \label{sec:implementation} 
 This chapter deals with the second part of this work, namely the implementation of the Perius
@@ -589,7 +598,10 @@ is not intended as an instructions manual, more information about how to deploy 
 be found on \url{http://perius.se}. This chapter's focus is instead on how the decisions for the
 implementation were made, how well the system would scale and the resulting security implications.
 
-\subsection{Background}
+\subsection{Background} \label{sec:background}
+Section~\ref{sec:background} explains the problem at hand, in relation to the system currently 
+used.
+
 \subsubsection{The current system} \label{sec:current_system}
 Today a system called Battlebinary~\cite{BATTLEBINARY} is used for managing and uploading files,
 mostly images, to content delivery networks. The current system does not make use of the
@@ -918,6 +930,9 @@ referenced in the copied metadata, this is due to the fact that a snapshot is no
 files and they are therefore not copied but remain intact.
 
 \subsection{Resulting system}
+The \textit{Resulting System} section explains what the implementation looks like and how its
+different operations work, in the terms of efficiency. 
+
 \subsubsection{Perius}
 Perius is the implementation that was done to solve the problem at hand at Uprise. Perius has a
 back-end written in Scala and a front-end written in Javascript (ES6), but they are both
@@ -1047,7 +1062,7 @@ is built upon MongoDB as persistent storage and not a pure tree structure, singl
 fetched in O(1) but when querying for subtrees they need to be built first, which arguable (See
 Section~\ref{sec:run_time}) takes $\theta(log(n))$, where n is the number of nodes in the subtree. 
 
-\subsubsection{Persistent storage} \label{sec:persistent_storage}
+%\subsubsection{Persistent storage} \label{sec:persistent_storage}
 \newpage
 \subsection{Load Testing} \label{sec:load_testing}
 Wrk and Apache Bench was used to load test the back-end. Wrk is a multi-threaded benchmarking tool
@@ -1317,8 +1332,11 @@ every 30 seconds that would make the system able to serve 6000 active users.
 
 \newpage
 \subsection{Security of the system}
-\subsubsection{Authorization}
-The authorization of users in the system is currently being handled by LDAP~\cite{LDAP}, as Perius 
+This section declares for the software security features that were used in Perius, in the terms of
+how the system and its assets are protected internally and externally.
+
+\subsubsection{Authentication}
+The authentication of users in the system is currently being handled by LDAP~\cite{LDAP}, as Perius 
 is mainly focussed at being deployed in internal networks which usually has an LDAP service enabled. 
 LDAP also makes it easier for the user to login as no separate account is needed for Perius and 
 thus the user can use the same account as for all the LDAP connected services on the internal 
@@ -1366,7 +1384,8 @@ companies internet access is based on a set of public static IP addresses and th
 content from ever being accessed outside of that controlled network.
 
 \subsection{Findings}
-This section presents the relevant findings derived from the implementation and testing of it.  
+This section presents the relevant findings derived from the implementation of Perius and the 
+testing of it.  
 
 \subsubsection{Security}
 The greatest security improvement of Perius compared to its predecessor Battlebinary is not the
@@ -1414,6 +1433,9 @@ solution one and three could possibly make Perius able to serve even more reques
 
 \newpage
 \section{Discussion}
+This chapter contains informal discussions about topics that were not covered by the rest of the
+report but that are still significant enough to mention.
+
 \subsection{Persistent Storage}
 More research could have been done in the choosing of persistent storage, as mentioned in 
 \textit{``NoSQL: Moving from MapReduce Batch Jobs to Event-Driven Data Collection''}
@@ -1459,6 +1481,9 @@ enough metrics from a fully deployed version of Perius.
 
 \newpage
 \section{Summary}
+This section covers the conclusions that could be drawn from this work and how the implementation 
+could, and will be, extended in the future.
+
 \subsection{Conclusions}
 The goal of this thesis was to see whether it was feasible to use Copy-on-Write in a high-level
 application (See Figure~\ref{fig:stack}). As the implementation (see
