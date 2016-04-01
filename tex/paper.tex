@@ -23,6 +23,8 @@
 \usepackage[toc,page]{appendix}
 \usepackage{framed}
 \usepackage{geometry}
+\usepackage{extarrows}
+\usepackage{mathpartir}
 
 \usepackage{alltt}
 %\usepackage{subfig}
@@ -232,6 +234,9 @@ snapshot creation. This can be useful for example when having a stable system an
 system update, if the system does not respond well to the update the filesystem can be rolled
 back to its previous stable state, provided that a snapshot was created before the update procedure.
 
+This work has taken a lot inspiration from the way BTRFS~\cite{BTRFS} handles snapshots, which is
+further explained in Section~\ref{sec:btrfs}.
+
 \newpage
 \subsection{Related Terminology}
 In this section concepts and abbreviations, that are recurring throughout the paper, which the
@@ -348,8 +353,7 @@ corresponding object.
         u \in U \text{ can read } c \in C & \Iff u \in A[u,c] \\
         u \in U \text{ can write } c \in C & \Iff u \in A[u,c] \text{ and read-only } \notin c \\
         u \in U \text{ can delete } m \in c & \Iff u \in A[u,c] \text{ and read-only } \notin c \\
-        u \nexists U \text{ can delete } f \in F \\
-        \forall c \in C, \quad \exists u \in U & \mid a \in A[u,c] 
+        \forall c \in C, \nexists u \in U & \text{ can delete } f \in c
     \end{split}
 \end{equation}
 
@@ -408,12 +412,34 @@ Section~\ref{sec:implementation}.
 \begin{equation} \label{eq:fileupdate}
     \begin{split}
         m' & = u, read(m) \land \\
-        x  & = f \in m' \land \\
-        f' & = u, change(x) \land \\
+        f  & = f \in m' \land \\
+        f' & = u, change(f) \land \\
         u, & write(f') \land \\
         u, & modify(f', m) \Implies f \in F \land f' \in F
     \end{split}
 \end{equation}
+\begin{equation}
+    \begin{split}
+        (F, f \in c) \xrightarrow{update(f', c)} (\{f, f'\} \subset F, f' \in c) 
+    \end{split}
+\end{equation}
+\inferrule
+{f \in c \xrightarrow{update(f', c)} f' \in c }
+{c \cap \{f\} \\ c \cup \{f'\} \\ F \cup \{f, f'\}} 
+
+\vspace{2em}
+
+\inferrule
+{f \in c \\ update(f', c) \\ f' \in c}
+{F \cup \{f, f'\}} 
+
+\vspace{2em}
+
+\inferrule
+{f \in F \\ [fileId = f.id, \dots] \in C \\ f \neq f'} 
+{F \cup \{f\} \xrightarrow{write(fileId, f'.id)} F \cup \{f, f'\}}
+
+\vspace{2em}
 If a user wants to update a file in a content, the file is copied and the original is intact.
 
 \begin{equation} \label{eq:contentupdate}
@@ -598,7 +624,12 @@ only consider the newest data if there is a conflict. This will have the same re
 modification with a single database node with this model, namely last write
 wins~\cite{LASTWRITEWINS}.
 
-\fix Add more findings
+\subsubsection{JPF Results}
+Although the JPF model checking results did not return any errors or showed any possible misbehaviours
+of the model, it should not be considered proven. The results however strongly indicate that there are no
+major flaws in it. But as the model will be more complicated once fully implemented as an application
+there might be flaws in the implementation details. 
+
 \newpage 
 \section{Implementation} \label{sec:implementation} 
 This chapter deals with the second part of this work, namely the implementation of the Perius
@@ -848,7 +879,7 @@ inefficient as more disk space will have to be used and if used with for example
 structures the part of the tree that needs to be copied will have to be traversed. 
 
 \subsubsection{Examples of Copy-on-Write system implementations}
-\subsubsubsection{BTRFS}
+\subsubsubsection{BTRFS} \label{sec:btrfs}
 Btrfs is a B-tree file system for Linux which makes use of Copy-on-Write to make it able to do
 efficient writeable snapshots and clones. It also supports cloning of subtrees without having to
 actually copy the whole subtree, this is due to the Copy-on-Write effect. As several nodes in the
