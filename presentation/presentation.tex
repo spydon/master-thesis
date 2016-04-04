@@ -246,29 +246,45 @@
   \centerline{\tiny{BTRFS: The Linux B-Tree Filesystem, O. Rodeh et al}}
 \end{frame}
 
-\section{What has been done}
+\section{Perius}
+\subsection{Model}
 \begin{frame}
-  \frametitle{What has been done}
+  \frametitle{Virtual Filesystem}
+  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{frontend}}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Model}
   \begin{itemize}
-    \item{Researching Copy-on-Write implementation}
+    \item{Describes the system that is to be implemented}
     \pause
-    \item{Model checking implementation idea in JPF}
+    \item{Model informally checked through JPF}
     \pause
-    \item{Implemented the fundamental back-end parts}
+    \item{Inspired by Biba. et al}
   \end{itemize}
 \end{frame}
 
-\section{How to proceed}
+\subsection{Implementation}
+\begin{frame}
+  \frametitle{Stack}
+  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{techstack}}
+\end{frame}
 
 \begin{frame}
-  \frametitle{How to proceed}
+  \frametitle{Snapshots (and branching)}
+  \centerline{\adjincludegraphics[width=1.1\linewidth,valign=T]{tree}}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Scalability}
   \begin{itemize}
-    \item{Comparing Copy-on-Write implementations}
+    \item{Unlimited scaling on width}
     \pause
-    \item{Fully implement and test the system}
+    \item{Optional Non-Blocking I/O with Reactive Mongo}
     \pause
-    \item{Writing more on the report...}
+    \item{Some heavy operations can be solved with caching} % Tree building
   \end{itemize}
 \end{frame}
+
 
 \end{document}
