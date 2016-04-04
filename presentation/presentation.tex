@@ -98,7 +98,7 @@
 %% MISC. INFORMATION
 %% -----------------------------------------------------------
 
-\title{Designing a Virtual Security Layer for Cloud Content}
+\title{Providing Access Control and Copy-on-Write for Content Distribution Network Assets}
 \subtitle{Researching Copy-on-Write solutions}
 
 \author[Lukas Klingsbo | \emph{lukl8671@student.uu.se}] % appears in the footline
@@ -113,7 +113,7 @@
 %% \logo{...}
 
 %% This is only inserted into the PDF information catalog. Can be left out.
-\subject{NoSQL: Moving from MapReduce Batch Jobs to Event-Driven Data Collection}
+\subject{Providing Access Control and Copy-on-Write for Content Distribution Network Assets}
 
 %% -----------------------------------------------------------
 %% Extra ``local'' settings
@@ -166,22 +166,60 @@
   \centerline{\adjincludegraphics[width=0.2\linewidth,valign=T]{ghost}}
 \end{frame}
 
-\subsection{Current system}
+\subsection{CDN}
 \begin{frame}
-  \frametitle{Current system}
+  \frametitle{Content Distribution Network (CDN)}
   \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{cdn}}
+\end{frame}
+
+\subsection{BattleBinary}
+\begin{frame}
+  \frametitle{BattleBinary}
+  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{battlebinary}}
+  \begin{itemize}
+    \item{1. Image is uploaded to BattleBinary}
+    \pause
+    \item{2. Filename + Part of file's hash = Asset Identifier}
+    \pause
+    \item{3. Upload image to CDN}
+    \pause
+    \item{4. Image is available to everybody with
+            link\\ \url{http://ea.akamaihd.net/cat-f1ee0283b6accd6.jpg}}
+  \end{itemize}
 \end{frame}
 
 \subsection{Problem}
 \begin{frame}
   \frametitle{Problem}
   \begin{itemize}
-    \item{Insecure}
+    \item{Insecure} % Hashes, anybody can access, disassembling of executables
     \pause
-    \item{Impractical}
+    \item{Impractical} % Can only handle the security settings of one file at the time
     \pause
-    \item{Wont scale}
+    \item{wont scale} % Scales quite well, but not to enormous amounts of users
   \end{itemize}
+\end{frame}
+
+\subsection{Copy-on-Write}
+\begin{frame}
+  \frametitle{Copy-on-Write}
+  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{cow-cat}}
+  \center{\tiny{*IDs are GUIDs in real implementations}}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Effects of COW}
+  \begin{itemize}
+    \item{No accidental incremental changes or race conditions}
+    \pause
+    \item{No locks needed $\rightarrow$ Scalability}
+    \pause
+    \item{Take snapshots of system in constant time}
+    \pause
+    \item{Needs some form of garbage collection/awareness}
+     %\pause
+    %\item{Low disk space and/or RAM usage}
+   \end{itemize}
 \end{frame}
 
 \subsection{Related Work}
