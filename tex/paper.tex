@@ -319,11 +319,11 @@ considerations for secure computer systems}~\cite{BIBA}, where many of the point
 taken into consideration when inspecting that the integrity of the data was always sound.
 
 \subsection{Approach}
-As this work only presents an informal model of how the system is designed it can not be regarded as
+As this work only presents an informal model of how the system is designed, it can not be regarded as
 a proof for the actual implementation of the system to be flawless. The model should however give a 
 strong idea of the soundness of the design of the system.
 
-The Copy-on-Write system is only used for files as all of the other objects in the system is
+The Copy-on-Write principle is only used for files as all of the other objects in the system is
 basically just metadata and not classed as important as the actual files themselves, from a data
 integrity point of view.
 
@@ -344,7 +344,33 @@ Foundations}~\cite{BLP1} by Bell \& LaPadula.
     \end{tabular}
 \end{center}
 
+\begin{description}
+\item[Container] \hfill \\
+    A container is what would normally be called a folder in popular speech and in the terms of
+    filesystems. A container can contain content objects and more containers, this recursive
+    definition results in containers representing a virtual tree structure.
+
+\item[File] \hfill \\
+    A file is an actual file, in the same sense as in a file system. A file could be for example a
+    video or image.
+
+\item[Content] \hfill \\
+    A content object contains a pointer to a file and metadata about that file. The pointer to the
+    file within the object can change to a different file, but the content object still keeps the
+    same metadata as before.
+
+\item[User] \hfill \\
+    A user is a registered user in the system.
+
+\item[Access Matrix] \hfill \\
+    The access matrix contains what containers that all the users in the system have access to. If
+    A[u,c] exists in the access matrix, user \textit{u} has access to container \textit{c}.
+
+\end{description}
+
 \subsection{Access rights}
+Access is only handled on containers and if a user has access to a container it also has access to
+all of that containers children.
 The \textit{A[u,c]} notation is symbolising an access token, and if \textit{A[u,c]} exists in
 the access matrix \textit{A}, user \textit{u} has full access to the container object \textit{c} and
 its children.
@@ -412,6 +438,9 @@ Section~\ref{sec:implementation}.
 To describe a content object \textit{m} containing fileId \textit{f}, the following syntax is used:
 $[fileId = f.id, \dots] \in M$, the same syntax is also applied to different types of objects
 throughout the explanation of the model.
+
+If the user is irrelevant for the rule described, it is left out from the action, for example u,
+read(o) = read(o).
 
 %\begin{equation} \label{eq:fileupdate}
 %    \begin{split}
@@ -495,7 +524,7 @@ container is directly changed, without any Copy-on-Write.
 \begin{equation} \label{eq:copy}
     \inferrule
     {m \in M \\ c \in C \\ m \in c \\ A[u,c] \in A}
-    {M \cup \{m\} \xrightarrow{u, copy(m')} M \cup \{m, m'\} \land m.id \neq m'}
+    {M \cup \{m\} \xrightarrow{u, copy(m')} M \cup \{m, m'\} \land m.id \neq m'.id}
 \end{equation}
 \vspace{1em}
 
@@ -504,7 +533,7 @@ of content \textit{m} copies that content, the new content \textit{m'} is not eq
 (because of its new ID), however they both contain the same metadata and refer to the same file.
 
 \vspace{2em}
-\textbf{Delete}
+\textbf{Content Deletion}
 \begin{equation} \label{eq:delete}
     \inferrule
     {m \in M \\ f \in F \\ f \in m \\ c \in C \\ m \in c \\ A[u,c] \in A}
@@ -519,10 +548,10 @@ deletes that content, the file \textit{f} referred to in the content is not dele
 \textbf{Snapshot}
 \begin{equation} \label{eq:snapshot}
     \begin{split}
-        [C', M'] = u, snapshot(tree) \Implies \\
-        \forall c \in tree, u, copy(c) \in C \land \\
-        \forall m \in tree, u, copy(m) \in M \land \\
-        (\forall f \in tree \Implies f \in F)
+        [C', M'] := snapshot(tree) & \Implies \\
+        \forall c \in tree, copy(c) \in & C' \\
+        \forall m \in tree, copy(m) \in & M' \\
+        \forall f \in tree, f \in & F
     \end{split}
 \end{equation}
 
@@ -534,7 +563,7 @@ containers and one with content, the referred files remain the same as before th
 \begin{equation} \label{eq:snapshot2}
     \inferrule
     {c \in C \\ A[u,c] \in A}
-    {M \land C \xrightarrow{[C', M'] = u, snapshot(c)} M \cup M' \land C \cup C'}
+    {M, C \xrightarrow{[C', M'] := u, snapshot(c)} M \cup M',  C \cup C'}
 \end{equation}
 If a user creates a snapshot of a container and the full container tree is re-created with new IDs,
 but its content still refers to the same files.
