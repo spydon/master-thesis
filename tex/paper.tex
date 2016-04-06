@@ -25,6 +25,7 @@
 \usepackage{geometry}
 \usepackage{extarrows}
 \usepackage{mathpartir}
+\usepackage{centernot}
 
 \usepackage{alltt}
 %\usepackage{subfig}
@@ -344,21 +345,18 @@ Foundations}~\cite{BLP1} by Bell \& LaPadula.
 \end{center}
 
 \subsection{Access rights}
-The \textit{a} notation is meant to symbolise an access token, and if \textit{a} exists in the
-requested entity of the matrix the corresponding user to that entity has full access to the
-corresponding object.
+The \textit{A[u,c]} notation is symbolising an access token, and if \textit{A[u,c]} exists in
+the access matrix \textit{A}, user \textit{u} has full access to the container object \textit{c} and
+its children.
 
 \begin{equation}
     \begin{split}
-        u \in U \text{ can read } c \in C & \Iff u \in A[u,c] \\
-        u \in U \text{ can write } c \in C & \Iff u \in A[u,c] \text{ and read-only } \notin c \\
-        u \in U \text{ can delete } m \in c & \Iff u \in A[u,c] \text{ and read-only } \notin c \\
-        \forall c \in C, \nexists u \in U & \text{ can delete } f \in c
+        A[u,c] \in A \Rightarrow & u \text{ can read } c \\
+        A[u,c] \in A \land \text{ read-only } \notin c \Rightarrow & u \text{ can write to } c \\
+        A[u,c] \in A \land \text{ read-only } \notin c \Rightarrow & u \text{ can delete } c \\
+        A[u,c] \in A \land f \in c \centernot\Rightarrow & u \text{ can delete } f 
     \end{split}
 \end{equation}
-
-\fix The last one means that no users can delete actual files, probably a bit confusingly written, 
-or even wrong?
 
 \subsection{Data integrity}
 A computer system or subsystem is defined as possessing the property of integrity if it behaves consistently
