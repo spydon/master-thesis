@@ -299,8 +299,9 @@ refer to unchanged data that is still a part of the system~\cite{SNAPSHOT}.
 \end{description}
 \newpage
 \section{Model} \label{sec:model}
-The model for this work shows how the data can only be accessed or modified by authorized
-users and how the defined integrity of the data is always kept in the Perius system. 
+This section describes how different operations can be expected to effect the data in the system.
+The model for this work also shows how the data can only be accessed or modified by
+authorized users and how the defined integrity of the data is always kept in the Perius system. 
 
 There could also be another relevant part included in the model, to show that content can not be 
 accessed by unauthorized viewers once the content is uploaded to a CDN. But as that should already 
@@ -341,7 +342,6 @@ Foundations}~\cite{BLP1} by Bell \& LaPadula.
         A   & $A[u_0,c_0]\dots A[u_n, c_n]$ & Access matrix; describes what containers users have access to\\ \hline
     \end{tabular}
 \end{center}
-
 
 \subsection{Access rights}
 The \textit{a} notation is meant to symbolise an access token, and if \textit{a} exists in the
@@ -391,8 +391,9 @@ and its system are assumed safe, malicious subsystems are not considered.
 
 \subsection{Consequences of modification} \label{sec:conseq}
 
-In this section the consequences of different operations are stated in an informal mathematical
-manner. These rules are what should be expected to be followed by the implementation in
+In this section the consequences, side effects and direct effects, of different operations are
+stated in an informal mathematical manner, similar to how inference rules are composed. These rules
+are what should be expected to be followed by the implementation in
 Section~\ref{sec:implementation}. 
 
 \begin{center}
@@ -402,96 +403,151 @@ Section~\ref{sec:implementation}.
         u, read(o)            & User u reads object o\\ \hline
         u, write(o)           & User u writes object o\\ \hline
         u, copy(o)            & User u copies object o and the copy gets a new ID\\ \hline
-        u, change(o)          & User u locally changes object o \\ \hline
-        u, modify(o', o)      & User u globally modifies object o based on object o'\\ \hline
+        %u, change(o)          & User u locally changes object o \\ \hline
+        u, update(o, o')      & User u globally modifies object o based on object o'\\ \hline
+        %u, modify(o', o)      & User u globally modifies object o based on object o'\\ \hline
         u, delete(o)          & User u deletes object o\\ \hline
         u, snapshot(o)        & User u takes a snapshot of object o \\ \hline
     \end{tabular}
 \end{center}
 
+To describe a content object \textit{m} containing fileId \textit{f}, the following syntax is used:
+$[fileId = f.id, \dots] \in M$, the same syntax is also applied to different types of objects
+throughout the explanation of the model.
+
+%\begin{equation} \label{eq:fileupdate}
+%    \begin{split}
+%        m' & = u, read(m) \land \\
+%        f  & = f \in m' \land \\
+%        f' & = u, change(f) \land \\
+%        u, & write(f') \land \\
+%        u, & modify(f', m) \Implies f \in F \land f' \in F
+%    \end{split}
+%\end{equation}
+%\begin{equation}
+%    \begin{split}
+%        (F, f \in c) \xrightarrow{update(f', c)} (\{f, f'\} \subset F, f' \in c) 
+%    \end{split}
+%\end{equation}
+
+\vspace{2em}
+\textbf{File Update}
 \begin{equation} \label{eq:fileupdate}
-    \begin{split}
-        m' & = u, read(m) \land \\
-        f  & = f \in m' \land \\
-        f' & = u, change(f) \land \\
-        u, & write(f') \land \\
-        u, & modify(f', m) \Implies f \in F \land f' \in F
-    \end{split}
+    \inferrule
+    {f \in F \\ [fileId = f.id, parent = c \dots] \in M \\ A[u,c] \in A} 
+    {F \cup \{f\} \xrightarrow{u, update(fileId, f'.id)} F \cup \{f, f'\}}
 \end{equation}
-\begin{equation}
-    \begin{split}
-        (F, f \in c) \xrightarrow{update(f', c)} (\{f, f'\} \subset F, f' \in c) 
-    \end{split}
-\end{equation}
-\inferrule
-{f \in c \xrightarrow{update(f', c)} f' \in c }
-{c \cap \{f\} \\ c \cup \{f'\} \\ F \cup \{f, f'\}} 
+\vspace{1em}
+
+If a user \textit{u} with access rights to a parent container \textit{c} of content \textit{m},
+updates a file reference \textit{f} in content \textit{m}, the original file stays intact.
+
+%\begin{equation} \label{eq:contentupdate}
+%    \begin{split}
+%        m' & = u, read(m) \land \\
+%        m'' & = u, change(m') \land \\
+%        m''' & = u, modify(m'', m) \Implies \\
+%        m''' & \in M \land m \not \in M
+%    \end{split}
+%\end{equation}
+
 
 \vspace{2em}
-
-\inferrule
-{f \in c \\ update(f', c) \\ f' \in c}
-{F \cup \{f, f'\}} 
-
-\vspace{2em}
-
-\inferrule
-{f \in F \\ [fileId = f.id, \dots] \in C \\ f \neq f'} 
-{F \cup \{f\} \xrightarrow{write(fileId, f'.id)} F \cup \{f, f'\}}
-
-\vspace{2em}
-If a user wants to update a file in a content, the file is copied and the original is intact.
-
+\textbf{Content Update}
 \begin{equation} \label{eq:contentupdate}
-    \begin{split}
-        m' & = u, read(m) \land \\
-        m'' & = u, change(m') \land \\
-        m''' & = u, modify(m'', m) \Implies \\
-        m''' & \in M \land m \not \in M
-    \end{split}
+    \inferrule
+    {m \in M \\ m \in c \\ A[u,c] \in A}
+    {M \cup \{m\} \xrightarrow{u, update(m, m')} M \cup \{m'\}}
 \end{equation}
-If a user reads content and then writes to it, the content is directly changed.
+\vspace{1em}
 
+If a user \textit{u} with access rights to a parent container \textit{c} of content \textit{m}
+updates that content, the content is directly changed, without any Copy-on-Write.
+
+%\begin{equation} \label{eq:containerupdate}
+%    \begin{split}
+%        c' & = u, read(c) \land \\
+%        c'' & = u, change(c') \land \\
+%        c''' & = u, modify(c'', c) \Implies \\
+%        c''' & \in C \land c \not \in C
+%    \end{split}
+%\end{equation}
+\vspace{2em}
+\textbf{Container Update}
 \begin{equation} \label{eq:containerupdate}
-    \begin{split}
-        c' & = u, read(c) \land \\
-        c'' & = u, change(c') \land \\
-        c''' & = u, modify(c'', c) \Implies \\
-        c''' & \in C \land c \not \in C
-    \end{split}
+    \inferrule
+    {c \in C \\ A[u,c] \in A}
+    {C \cup \{c\} \xrightarrow{u, update(c, c')} C \cup \{m'\}}
 \end{equation}
-If a user reads a container and then writes to it, the container is directly changed.
+\vspace{1em}
 
+If a user \textit{u} with access rights to a container \textit{c} updates that container, the
+container is directly changed, without any Copy-on-Write.
+
+%\begin{equation} \label{eq:copy}
+%    \begin{split}
+%        & f' = f \in m \\
+%        & m' = u, copy(m) \Implies \\
+%        & m' \neq m \land \\
+%        & f' \in m' \land f' \in m
+%    \end{split}
+%\end{equation}
+\vspace{2em}
+\textbf{Copy}
 \begin{equation} \label{eq:copy}
-    \begin{split}
-        & f' = f \in m \\
-        & m' = u, copy(m) \Implies \\
-        & m' \neq m \land \\
-        & f' \in m' \land f' \in m
-    \end{split}
+    \inferrule
+    {m \in M \\ c \in C \\ m \in c \\ A[u,c] \in A}
+    {M \cup \{m\} \xrightarrow{u, copy(m')} M \cup \{m, m'\} \land m.id \neq m'}
 \end{equation}
-If a user copies a content, the new content is not equal to the old (because of its new ID), however
-they both refer to the same file.
+\vspace{1em}
 
+If a user \textit{u} with access rights to the parent (source and destination) container \textit{c}
+of content \textit{m} copies that content, the new content \textit{m'} is not equal to the old
+(because of its new ID), however they both contain the same metadata and refer to the same file.
+
+\vspace{2em}
+\textbf{Delete}
+\begin{equation} \label{eq:delete}
+    \inferrule
+    {m \in M \\ f \in F \\ f \in m \\ c \in C \\ m \in c \\ A[u,c] \in A}
+    {M \cup \{m\} \land F \cup \{f\} \xrightarrow{u, delete(m)} M \cup \{\} \land F \cup \{f\}}
+\end{equation}
+\vspace{1em}
+
+If a user \textit{u} with access rights to a parent container \textit{c} of content \textit{m}
+deletes that content, the file \textit{f} referred to in the content is not deleted.
+
+\vspace{2em}
+\textbf{Snapshot}
 \begin{equation} \label{eq:snapshot}
     \begin{split}
-        s = u, snapshot(c') \Implies \\
-        \forall c \in c', u, copy(c) \in s \land \\
-        \forall m \in c', u, copy(m) \in s \land \\
-        (\forall f \in c' \Implies f \in s)
+        [C', M'] = u, snapshot(tree) \Implies \\
+        \forall c \in tree, u, copy(c) \in C \land \\
+        \forall m \in tree, u, copy(m) \in M \land \\
+        (\forall f \in tree \Implies f \in F)
     \end{split}
 \end{equation}
-If a user creates a snapshot of a container the full container tree is re-created with new IDs and
-its content still refers to the same files.
 
-\begin{equation} \label{eq:delete}
-    \begin{split}
-        f' = f \in (u, read(c)),  \\
-        u, delete(c) \Implies \\
-        c \not \in C \land f' \in F
-    \end{split}
+To explain the non-trivial snapshot operation it is first defined in \ref{eq:snapshot}. The snapshot
+operation is performed upon a tree of objects and results in two new sets (C' and M'), one with
+containers and one with content, the referred files remain the same as before the snapshot.
+
+\vspace{2em}
+\begin{equation} \label{eq:snapshot2}
+    \inferrule
+    {c \in C \\ A[u,c] \in A}
+    {M \land C \xrightarrow{[C', M'] = u, snapshot(c)} M \cup M' \land C \cup C'}
 \end{equation}
-If a user deletes content, the file referred to in the content is not deleted.
+If a user creates a snapshot of a container and the full container tree is re-created with new IDs,
+but its content still refers to the same files.
+
+%\begin{equation} \label{eq:delete}
+%    \begin{split}
+%        f' = f \in (u, read(c)),  \\
+%        u, delete(c) \Implies \\
+%        c \not \in C \land f' \in F
+%    \end{split}
+%\end{equation}
 
 \subsection{Interaction of Multiple Accesses} \label{sec:multiple_access}
 As a result of consequence~\ref{eq:contentupdate} and~\ref{eq:containerupdate} in
@@ -765,7 +821,7 @@ and because the BSON format which is used in MongoDB is almost identical ~\cite{
 standardised JSON format which is usually used by RESTful services~\cite{JSON}. 
 
 \hfill \\
-\textbf{REST Endpoints} \hfill \\
+\textbf{REST Endpoints} \label{sec:API} \hfill \\
 For the front-end to communicate with the back-end, a RESTful service is implemented.
 The following endpoints were configured:
 
