@@ -327,7 +327,7 @@ The Copy-on-Write principle is only used for files as all of the other objects i
 basically just metadata and not classed as important as the actual files themselves, from a data
 integrity point of view.
 
-\subsection{Elements of the Model}
+\subsection{Sets and Elements of the Model}\label{sec:elements}
 In this section we show the elements of the model, identify the different sets and explain how they
 should be interpreted. This is done in the same way as in \textit{Secure Computer Systems: Mathematical
 Foundations}~\cite{BLP1} by Bell \& LaPadula.
@@ -614,31 +614,13 @@ testing.
     \label{fig:relation}
 \end{figure}
 
-\hfill \par \textbf{Content} \\
-Content is metadata about a file and is stored in a container, it is a form of virtual file.  The
-content can refer to for example an image, video or binary blob.\\
+All the entities in Figure~\ref{fig:relation} is described in Section~\ref{sec:elements}, except for
+projects, which is explained below. \\
+\vspace{0.5em}
 
-\par \textbf{Project} \\
-A project is what is created to contain all content and containers related to a real project. Files
+A \textbf{Project} is what is created to contain all content and containers related to a real project. Files
 and metadata can only be changed within a project and the system can contain several projects 
-that have their virtual content and containers completely disjoint.\\
-
-\par \textbf{Container} \\
-A container is a virtual folder within a project which can contain content and other containers.\\
-
-\par \textbf{Snapshot} \\
-A snapshot is a read-only container from the state which the container was in when the snapshot
-was created.  A snapshot can not be updated and can only be deleted from the root of the snapshot.
-Snapshots are by default stored as siblings to the container which they were made from, but they can
-be contained by any container.\\
-
-\par \textbf{File} \\
-A file refers to an actual physical file. Files are stored in the database to make backup,
-deployment and migration easier.\\
-
-\par \textbf{User} \\
-A user is the structure that handles people who have been granted access to the system. Access to
-the system is handled by a separate service, like LDAP.\\
+that have their own virtual content and containers completely disjoint from the other projects.\\
 
 \subsubsection{Execution}
 Java Path Finder was used to show that the model and plan of how to build the system was sound. The
@@ -1079,9 +1061,43 @@ and a design which allows for an interchangeable persistent storage.
 The front-end is written in ES6 with React and Reflux, and the styling is done with the help of
 Bootstrap.
 
+\subsubsection{Entities of the Implementation}
+This section explains the different types of entities, and their interaction, that are handled by
+Perius. They are explained similarly to how they are explained for the model in
+Section~\ref{sec:elements}, but with more implementation specific details.
+
+\begin{description}
+\item[Content] \hfill \\
+Content is metadata about a file and is stored in a container, it is a form of virtual file.  The
+content can refer to for example an image, video or binary blob.\\
+
+\item[Project] \hfill \\
+A project is what is created to contain all content and containers related to a real project. Files
+and metadata can only be changed within a project and the system can contain several projects 
+that have their virtual content and containers completely disjoint. Each project is handled as a
+separate database in MongoDB.\\
+
+\item[Container] \hfill \\
+A container is a virtual folder within a project which can contain content and other containers.\\
+
+\item[Snapshot] \hfill \\
+A snapshot is a read-only container from the state which the container was in when the snapshot
+was created.  A snapshot can not be updated and can only be deleted from the root of the snapshot.
+Snapshots are by default stored as siblings to the container which they were made from, but they can
+be contained by any container.\\
+
+\item[File] \hfill \\
+A file refers to an actual physical file. Files are stored in the database to make backup,
+deployment and migration easier.\\
+
+\item[User] \hfill \\
+A user is the structure that handles people who have been granted access to the system. Access to
+the system is handled by a separate service, like LDAP.\\
+
+\end{description}
 \subsubsection{Runtime Complexity of Operations} \label{sec:run_time}
 The runtime complexities of the operations in this section are quite intuitive, that is why they 
-are only explained, and not proven to fulfill the complexities which are claimed. 
+are only explained, and not proven to fulfil the complexities which are claimed. 
 %To prove them, methods like the master theorem~\cite{ALGORITHMS} or \dots could be used.
 
 \begin{figure}[H] 
