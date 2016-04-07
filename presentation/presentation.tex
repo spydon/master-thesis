@@ -166,38 +166,22 @@
   \centerline{\adjincludegraphics[width=0.2\linewidth,valign=T]{ghost}}
 \end{frame}
 
+\subsection{BattleBinary}
+\begin{frame}
+  \frametitle{BattleBinary}
+  - A management system for CDN assets\\
+  What Uprise wanted:
+  \begin{itemize}
+    \item{Possibility to handle private assets}
+    \item{Migration to their current technology stack}
+    \item{Features like snapshots and branching}
+  \end{itemize}
+\end{frame}
+
 \subsection{CDN}
 \begin{frame}
   \frametitle{Content Distribution Network (CDN)}
   \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{cdn}}
-\end{frame}
-
-\subsection{BattleBinary}
-\begin{frame}
-  \frametitle{BattleBinary}
-  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{battlebinary}}
-  \begin{itemize}
-    \item{1. Image is uploaded to BattleBinary}
-    \pause
-    \item{2. Filename + Part of file's hash = Asset Identifier}
-    \pause
-    \item{3. Upload image to CDN}
-    \pause
-    \item{4. Image is available to everybody with
-            link\\ \url{http://ea.akamaihd.net/cat-f1ee0283b6accd6.jpg}}
-  \end{itemize}
-\end{frame}
-
-\subsection{Problem}
-\begin{frame}
-  \frametitle{Problem}
-  \begin{itemize}
-    \item{Insecure} % Hashes, anybody can access, disassembling of executables
-    \pause
-    \item{Impractical} % Can only handle the security settings of one file at the time
-    \pause
-    \item{wont scale} % Scales quite well, but not to enormous amounts of users
-  \end{itemize}
 \end{frame}
 
 \subsection{Copy-on-Write}
@@ -234,6 +218,45 @@
   \end{itemize}
 \end{frame}
 
+
+\section{Problem}
+
+\subsection{BattleBinary}
+\begin{frame}
+  \frametitle{BattleBinary}
+  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{battlebinary}}
+  \begin{itemize}
+    \item{1. Image is uploaded to BattleBinary}
+    \pause
+    \item{2. Filename + Part of file's hash = Asset Identifier}
+    \pause
+    \item{3. Upload image to CDN}
+    \pause
+    \item{4. Image is available to everybody with
+            link\\ \url{http://ea.akamaihd.net/cat-f1ee0283b6accd6.jpg}}
+  \end{itemize}
+\end{frame}
+
+\subsection{Problem}
+\begin{frame}
+  \frametitle{Problem}
+  \begin{itemize}
+    \item{Insecure} % Hashes, anybody can access, disassembling of executables
+    \pause
+    \item{Impractical} % Can only handle the security settings of one file at the time
+    \pause
+    \item{Wont scale} % Scales quite well, but not to enormous amounts of users
+    \pause
+    \item{Lacks necessary features like access control and snapshots}
+  \end{itemize}
+\end{frame}
+
+\subsection{Private Content}
+\begin{frame}
+  \frametitle{Private Content}
+  \centerline{\adjincludegraphics[width=1.0\linewidth,valign=T]{private-content}}
+\end{frame}
+
 \subsection{Solutions Idea}
 \begin{frame}
   \frametitle{Solutions Idea}
@@ -246,13 +269,14 @@
   \centerline{\tiny{BTRFS: The Linux B-Tree Filesystem, O. Rodeh et al}}
 \end{frame}
 
+
 \section{Perius}
-\subsection{Model}
 \begin{frame}
   \frametitle{Virtual Filesystem}
-  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{frontend}}
+  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{front}}
 \end{frame}
 
+\subsection{Model}
 \begin{frame}
   \frametitle{Model}
   \begin{itemize}
@@ -264,10 +288,22 @@
   \end{itemize}
 \end{frame}
 
+
 \subsection{Implementation}
 \begin{frame}
   \frametitle{Stack}
   \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{techstack}}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Security Settings}
+  \begin{itemize}
+    \item{\textbf{Public} - The content can be reached by anybody}
+    \pause
+    \item{\textbf{Protected} - The content can only be reached by a range if IP addresses}
+    \pause
+    \item{\textbf{Private} - The content can only be reached by users with a signed cookie}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -286,5 +322,20 @@
   \end{itemize}
 \end{frame}
 
+\begin{frame}
+  \frametitle{Open Source}
+  \begin{itemize}
+    \item{\url{https://github.com/spydon/perius}}
+    \item{\url{https://github.com/spydon/perius-front}}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \center{Questions?}
+\end{frame}
+
+\begin{frame}
+    \center{Thank you for listening}
+\end{frame}
 
 \end{document}
