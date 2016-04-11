@@ -462,7 +462,7 @@ read(o) = read(o).
 \textbf{File Update}
 \begin{equation} \label{eq:fileupdate}
     \inferrule
-    {f \in F \\ [fileId = f.id, parent = c \dots] \in M \\ A[u,c]} 
+    {[fileId = f.id, parent = c \dots] \in M \\ A[u,c]} 
     {F \cup \{f\} \xrightarrow{u, update(fileId, f'.id)} F \cup \{f, f'\}}
 \end{equation}
 \vspace{1em}
@@ -537,7 +537,7 @@ of content \textit{m} copies that content, the new content \textit{m'} is not eq
 \textbf{Content Deletion}
 \begin{equation} \label{eq:delete}
     \inferrule
-    {m \in M \\ f \in F \\ f \in m \\ c \in C \\ m \in c \\ A[u,c]}
+    {m \in M \\ f \in m \\ c \in C \\ m \in c \\ A[u,c]}
     {M \cup \{m\} \land F \cup \{f\} \xrightarrow{u, delete(m)} M \cup \{\} \land F \cup \{f\}}
 \end{equation}
 \vspace{1em}
