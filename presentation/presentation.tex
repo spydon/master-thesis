@@ -224,6 +224,7 @@
 \subsection{BattleBinary}
 \begin{frame}
   \frametitle{BattleBinary}
+  Virtual file system to organise CDN assets
   \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{battlebinary}}
   \begin{itemize}
     \item{1. Image is uploaded to BattleBinary}
@@ -233,7 +234,7 @@
     \item{3. Upload image to CDN}
     \pause
     \item{4. Image is available to everybody with
-            link\\ \url{http://ea.akamaihd.net/cat-f1ee0283b6accd6.jpg}}
+             link\\ \url{http://ea.akamaihd.net/cat-f1ee0283b6accd6.jpg}}
   \end{itemize}
 \end{frame}
 
@@ -269,7 +270,6 @@
   \centerline{\tiny{BTRFS: The Linux B-Tree Filesystem, O. Rodeh et al}}
 \end{frame}
 
-
 \section{Perius}
 \begin{frame}
   \frametitle{Virtual Filesystem}
@@ -287,7 +287,6 @@
     \item{Inspired by Biba. et al}
   \end{itemize}
 \end{frame}
-
 
 \subsection{Implementation}
 \begin{frame}
@@ -309,6 +308,17 @@
 \begin{frame}
   \frametitle{Snapshots (and branching)}
   \centerline{\adjincludegraphics[width=1.1\linewidth,valign=T]{tree}}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Load Testing}
+  \begin{itemize}
+    \item{Rigorous Load Testing was done on the back-end}
+    \pause
+    \item{Wrk and Apache Bench was used}
+    \pause
+    \item{Result: About 60000 clients/back-end node before congestion}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}

@@ -340,7 +340,7 @@ Foundations}~\cite{BLP1} by Bell \& LaPadula.
         F   & $f_0\dots f_n$                & Files; files, images, videos\\ \hline
         M   & $m_0\dots m_n$                & Content; Metadata for files\\ \hline
         U   & $u_0\dots u_n$                & Users; registered users in the system\\ \hline
-        A   & $A[u_0,c_0]\dots A[u_n, c_n]$ & Access matrix; describes what containers users have access to\\ \hline
+        A   & $A[u_0,c_0]\dots A[u_n, c_n]$ & Access matrix; access rights \\ \hline
     \end{tabular}
 \end{center}
 
@@ -364,23 +364,24 @@ Foundations}~\cite{BLP1} by Bell \& LaPadula.
 
 \item[Access Matrix] \hfill \\
     The access matrix contains what containers that all the users in the system have access to. If
-    A[u,c] exists in the access matrix, user \textit{u} has access to container \textit{c}.
+    A[u,c] is true in the access matrix, user \textit{u} has access to container \textit{c}.
 
 \end{description}
 
 \subsection{Access rights}
 Access is only handled on containers and if a user has access to a container it also has access to
 all of that containers children.
-The \textit{A[u,c]} notation is symbolising an access token, and if \textit{A[u,c]} exists in
-the access matrix \textit{A}, user \textit{u} has full access to the container object \textit{c} and
-its children.
+The \textit{A[u,c]} notation is symbolising an access token. If \textit{A[u,c]} is true in the 
+access matrix \textit{A}, user \textit{u} has full access to the container object \textit{c} and its
+children. If it is false or if the entry does not exist in the access matrix, the user \textit{u}
+does not have any access rights for \textit{c}. 
 
 \begin{equation}
     \begin{split}
-        A[u,c] \in A \Rightarrow & u \text{ can read } c \\
-        A[u,c] \in A \land \text{ read-only } \notin c \Rightarrow & u \text{ can write to } c \\
-        A[u,c] \in A \land \text{ read-only } \notin c \Rightarrow & u \text{ can delete } c \\
-        A[u,c] \in A \land f \in c \centernot\Rightarrow & u \text{ can delete } f 
+        A[u,c] \Rightarrow & u \text{ can read } c \\
+        A[u,c] \land \text{ read-only } \notin c \Rightarrow & u \text{ can write to } c \\
+        A[u,c] \land \text{ read-only } \notin c \Rightarrow & u \text{ can delete } c \\
+        A[u,c] \land f \in c \centernot\Rightarrow & u \text{ can delete } f 
     \end{split}
 \end{equation}
 
@@ -461,7 +462,7 @@ read(o) = read(o).
 \textbf{File Update}
 \begin{equation} \label{eq:fileupdate}
     \inferrule
-    {f \in F \\ [fileId = f.id, parent = c \dots] \in M \\ A[u,c] \in A} 
+    {f \in F \\ [fileId = f.id, parent = c \dots] \in M \\ A[u,c]} 
     {F \cup \{f\} \xrightarrow{u, update(fileId, f'.id)} F \cup \{f, f'\}}
 \end{equation}
 \vspace{1em}
@@ -483,7 +484,7 @@ updates a file reference \textit{f} in content \textit{m}, the original file sta
 \textbf{Content Update}
 \begin{equation} \label{eq:contentupdate}
     \inferrule
-    {m \in M \\ m \in c \\ A[u,c] \in A}
+    {m \in M \\ m \in c \\ A[u,c]}
     {M \cup \{m\} \xrightarrow{u, update(m, m')} M \cup \{m'\}}
 \end{equation}
 \vspace{1em}
@@ -503,7 +504,7 @@ updates that content, the content is directly changed, without any Copy-on-Write
 \textbf{Container Update}
 \begin{equation} \label{eq:containerupdate}
     \inferrule
-    {c \in C \\ A[u,c] \in A}
+    {c \in C \\ A[u,c]}
     {C \cup \{c\} \xrightarrow{u, update(c, c')} C \cup \{m'\}}
 \end{equation}
 \vspace{1em}
@@ -523,7 +524,7 @@ container is directly changed, without any Copy-on-Write.
 \textbf{Copy}
 \begin{equation} \label{eq:copy}
     \inferrule
-    {m \in M \\ c \in C \\ m \in c \\ A[u,c] \in A}
+    {m \in M \\ c \in C \\ m \in c \\ A[u,c]}
     {M \cup \{m\} \xrightarrow{u, copy(m')} M \cup \{m, m'\} \land m.id \neq m'.id}
 \end{equation}
 \vspace{1em}
@@ -536,7 +537,7 @@ of content \textit{m} copies that content, the new content \textit{m'} is not eq
 \textbf{Content Deletion}
 \begin{equation} \label{eq:delete}
     \inferrule
-    {m \in M \\ f \in F \\ f \in m \\ c \in C \\ m \in c \\ A[u,c] \in A}
+    {m \in M \\ f \in F \\ f \in m \\ c \in C \\ m \in c \\ A[u,c]}
     {M \cup \{m\} \land F \cup \{f\} \xrightarrow{u, delete(m)} M \cup \{\} \land F \cup \{f\}}
 \end{equation}
 \vspace{1em}
@@ -562,7 +563,7 @@ containers and one with content, the referred files remain the same as before th
 \vspace{2em}
 \begin{equation} \label{eq:snapshot2}
     \inferrule
-    {c \in C \\ A[u,c] \in A}
+    {c \in C \\ A[u,c]}
     {M, C \xrightarrow{[C', M'] := u, snapshot(c)} M \cup M',  C \cup C'}
 \end{equation}
 If a user creates a snapshot of a container and the full container tree is re-created with new IDs,
