@@ -340,9 +340,33 @@ Foundations}~\cite{BLP1} by Bell \& LaPadula.
         F   & $f_0\dots f_n$                & Files; files, images, videos\\ \hline
         M   & $m_0\dots m_n$                & Content; Metadata for files\\ \hline
         U   & $u_0\dots u_n$                & Users; registered users in the system\\ \hline
-        A   & $A[u_0,c_0]\dots A[u_n, c_n]$ & Access matrix; access rights \\ \hline
+        A   & $A[u_0,c_0]\dots A[u_n, c_n]$ & Boolean Access matrix; access rights \\ \hline
     \end{tabular}
 \end{center}
+
+\begin{center}
+    \begin{tabular}{ | l | l | l | p{5cm} |}
+        \hline
+        \textbf{Set} & \textbf{Relation} & \textbf{Type} \\ \hline
+        \textbf{C} & $\textbf{C} \supseteq C \ni c$ & $\textbf{C}=P_{fin}(P_{fin}(C \cup M))$\\ \hline
+        \textbf{M} & $\textbf{M} \supseteq M \ni m$ & $\textbf{M}=P_{fin}(M)$\\ \hline
+        \textbf{F} & $\textbf{F} \supseteq F \ni f$ & $\textbf{F}=P_{fin}(F)$\\ \hline
+    \end{tabular}
+\end{center}
+
+The bold notation (\textbf{C}, \textbf{M}, \textbf{F}) refers to the sets containing all possible
+members of that type.
+
+\begin{center}
+    \begin{tabular}{ | l | l | p{5cm} |}
+        \hline
+        \textbf{Element} & \textbf{Type} \\ \hline
+        c & $C \cup M$ \\ \hline
+        m & $\{id: GUID, file: f\}$ \\ \hline
+        f & File \\ \hline
+    \end{tabular}
+\end{center}
+
 
 \begin{description}
 \item[Container] \hfill \\
@@ -379,8 +403,8 @@ does not have any access rights for \textit{c}.
 \begin{equation}
     \begin{split}
         A[u,c] \Rightarrow & u \text{ can read } c \\
-        A[u,c] \land \text{ read-only } \notin c \Rightarrow & u \text{ can write to } c \\
-        A[u,c] \land \text{ read-only } \notin c \Rightarrow & u \text{ can delete } c \\
+        A[u,c] \land \neg \text{ read-only(c) } \Rightarrow & u \text{ can write to } c \\
+        A[u,c] \land \neg \text{ read-only(c) } \Rightarrow & u \text{ can delete } c \\
         A[u,c] \land f \in c \centernot\Rightarrow & u \text{ can delete } f 
     \end{split}
 \end{equation}
@@ -425,14 +449,11 @@ Section~\ref{sec:implementation}.
     \begin{tabular}{ | l | l | l | p{5cm} |}
         \hline
         \textbf{Action} & \textbf{Semantics} \\ \hline
-        u, read(o)            & User u reads object o\\ \hline
-        u, write(o)           & User u writes object o\\ \hline
-        u, copy(o)            & User u copies object o and the copy gets a new ID\\ \hline
-        %u, change(o)          & User u locally changes object o \\ \hline
-        u, update(o, o')      & User u globally modifies object o based on object o'\\ \hline
-        %u, modify(o', o)      & User u globally modifies object o based on object o'\\ \hline
-        u, delete(o)          & User u deletes object o\\ \hline
-        u, snapshot(o)        & User u takes a snapshot of object o \\ \hline
+        u, read(m, f)    & User \textit{u} reads \textit{f} from \textit{m}\\ \hline
+        u, create(m, c)  & User \textit{u} creates \textit{m} in \textit{c}\\ \hline
+        u, update(m, f)  & User \textit{u} updates \textit{f} with \textit{m}\\ \hline
+        u, delete(o)     & User \textit{u} deletes \textit{o}\\ \hline
+        u, snapshot(o)   & User \textit{u} takes a snapshot of \textit{o} \\ \hline
     \end{tabular}
 \end{center}
 
@@ -443,102 +464,103 @@ throughout the explanation of the model.
 If the user is irrelevant for the rule described, it is left out from the action, for example u,
 read(o) = read(o).
 
-%\begin{equation} \label{eq:fileupdate}
-%    \begin{split}
-%        m' & = u, read(m) \land \\
-%        f  & = f \in m' \land \\
-%        f' & = u, change(f) \land \\
-%        u, & write(f') \land \\
-%        u, & modify(f', m) \Implies f \in F \land f' \in F
-%    \end{split}
-%\end{equation}
-%\begin{equation}
-%    \begin{split}
-%        (F, f \in c) \xrightarrow{update(f', c)} (\{f, f'\} \subset F, f' \in c) 
-%    \end{split}
-%\end{equation}
-
 \vspace{2em}
-\textbf{File Update}
-\begin{equation} \label{eq:fileupdate}
+\textbf{File Read}
+\vspace{1em}
+\begin{equation} \label{eq:fileread}
     \inferrule
-    {[fileId = f.id, parent = c \dots] \in M \\ A[u,c]} 
-    {F \cup \{f\} \xrightarrow{u, update(fileId, f'.id)} F \cup \{f, f'\}}
+    {(\textbf{*}) \\ C \ni c \ni m \\ A[u,c]} 
+    {(C, F) \xrightarrow{u, read(m,f)} (C, F)}
 \end{equation}
 \vspace{1em}
 
-If a user \textit{u} with access rights to a parent container \textit{c} of content \textit{m},
-updates a file reference \textit{f} in content \textit{m}, the original file stays intact.
+A user \textit{u} with access rights to a parent container \textit{c} of content \textit{m}
+can read a file \textit{f} in content \textit{m}.
 
-%\begin{equation} \label{eq:contentupdate}
-%    \begin{split}
-%        m' & = u, read(m) \land \\
-%        m'' & = u, change(m') \land \\
-%        m''' & = u, modify(m'', m) \Implies \\
-%        m''' & \in M \land m \not \in M
-%    \end{split}
-%\end{equation}
+These predicates are used in several places and are therefore named \textit{*}.
 
+\vspace{2em}
+\textbf{File Creation}
+\vspace{1em}
+\begin{equation} \label{eq:filecreate}
+    \inferrule
+    {C \ni c \\ A[u,c] \\ m \centernot \in c \\ \neg readOnly(c)} 
+    {(C \cup \{c'\}, F) \xrightarrow{u, create(m,c)} (C \cup \{c \cup \{m\}\}, F \cup \{m.file\})}
+\end{equation}
+\vspace{1em}
+
+A user \textit{u} with access rights to a non-readonly container \textit{c} can create a content
+\textit{m}, containing a file \textit{f}, in container \textit{c}.
+
+\vspace{2em}
+\textbf{File Update}
+\vspace{1em}
+\begin{equation} \label{eq:fileupdate}
+    \inferrule
+    {\textbf{*} \\ c' = c \cup \{m'\} \\ m' = \{id = m.id, file = f'\} \\ \neg readOnly(c)} 
+    {(C \cup \{c \cup \{m\}\} , F) \xrightarrow{u, update(m, f')} (C \cup \{c \cup \{m'\}\}, F
+    \cup \{f'\}))}
+\end{equation}
+\vspace{1em}
+
+If a user \textit{u} with access rights to a parent container \textit{c} (which is not read only) of
+content \textit{m}, updates a file \textit{f} in content \textit{m}, the original file stays
+intact as an effect of Copy-on-Write.
+
+\vspace{2em}
+\textbf{File Deletion}
+\newline
+
+Files can not be deleted by any user, however all the references to the file can
+be deleted, see Consequence \ref{eq:delete}.
 
 \vspace{2em}
 \textbf{Content Update}
+\vspace{1em}
 \begin{equation} \label{eq:contentupdate}
     \inferrule
-    {m \in M \\ m \in c \\ A[u,c]}
-    {M \cup \{m\} \xrightarrow{u, update(m, m')} M \cup \{m'\}}
+    {\textbf{*} \\ \neg readOnly(c)}
+    {(C \cup \{c \cup \{m\}\}, F) \xrightarrow{u, update(m, m')} ((C \cup \{c \cup \{m'\}\}, F)}
 \end{equation}
 \vspace{1em}
 
 If a user \textit{u} with access rights to a parent container \textit{c} of content \textit{m}
 updates that content, the content is directly changed, without any Copy-on-Write.
 
-%\begin{equation} \label{eq:containerupdate}
-%    \begin{split}
-%        c' & = u, read(c) \land \\
-%        c'' & = u, change(c') \land \\
-%        c''' & = u, modify(c'', c) \Implies \\
-%        c''' & \in C \land c \not \in C
-%    \end{split}
-%\end{equation}
 \vspace{2em}
 \textbf{Container Update}
+\vspace{1em}
 \begin{equation} \label{eq:containerupdate}
     \inferrule
-    {c \in C \\ A[u,c]}
-    {C \cup \{c\} \xrightarrow{u, update(c, c')} C \cup \{m'\}}
+    {\textbf{*} \\ \neg readOnly(c)}
+    {(C \cup \{c\}, F) \xrightarrow{u, update(c, c')} (C \cup \{c'\}, F)}
 \end{equation}
 \vspace{1em}
 
 If a user \textit{u} with access rights to a container \textit{c} updates that container, the
 container is directly changed, without any Copy-on-Write.
 
-%\begin{equation} \label{eq:copy}
-%    \begin{split}
-%        & f' = f \in m \\
-%        & m' = u, copy(m) \Implies \\
-%        & m' \neq m \land \\
-%        & f' \in m' \land f' \in m
-%    \end{split}
-%\end{equation}
 \vspace{2em}
 \textbf{Copy}
+\vspace{1em}
 \begin{equation} \label{eq:copy}
     \inferrule
-    {m \in M \\ c \in C \\ m \in c \\ A[u,c]}
-    {M \cup \{m\} \xrightarrow{u, copy(m')} M \cup \{m, m'\} \land m.id \neq m'.id}
+    {\textbf{*} \\ m' = \{id = \text{"fresh"}, file = m.file\} \\ \neg readOnly(c)}
+    {(C \cup \{c \cup \{m\}\}, F) \xrightarrow{u, create(c, m')} (C \cup \{c \cup \{m, m'\}\}, F)}
 \end{equation}
 \vspace{1em}
 
 If a user \textit{u} with access rights to the parent (source and destination) container \textit{c}
 of content \textit{m} copies that content, the new content \textit{m'} is not equal to the old
-(because of its new ID), however they both contain the same metadata and refer to the same file.
+(because of its new ID), however they both contain the same file.
 
 \vspace{2em}
 \textbf{Content Deletion}
+\vspace{1em}
 \begin{equation} \label{eq:delete}
     \inferrule
-    {m \in M \\ f \in m \\ c \in C \\ m \in c \\ A[u,c]}
-    {M \cup \{m\} \land F \cup \{f\} \xrightarrow{u, delete(m)} M \cup \{\} \land F \cup \{f\}}
+    {\textbf{*} \\ \neg readOnly(c)}
+    {(C \cup \{m\}, F) \xrightarrow{u, delete(m)} (C, F)}
 \end{equation}
 \vspace{1em}
 
@@ -547,6 +569,7 @@ deletes that content, the file \textit{f} referred to in the content is not dele
 
 \vspace{2em}
 \textbf{Snapshot}
+\vspace{1em}
 \begin{equation} \label{eq:snapshot}
     \begin{split}
         [C', M'] := snapshot(tree) & \Implies \\
@@ -563,19 +586,11 @@ containers and one with content, the referred files remain the same as before th
 \vspace{2em}
 \begin{equation} \label{eq:snapshot2}
     \inferrule
-    {c \in C \\ A[u,c]}
-    {M, C \xrightarrow{[C', M'] := u, snapshot(c)} M \cup M',  C \cup C'}
+    {\textbf{*} \\ \neg readOnly(c)}
+    {(C, F) \xrightarrow{[C', M'] := u, snapshot(c)} (C \cup C' \cup M', F)}
 \end{equation}
 If a user creates a snapshot of a container and the full container tree is re-created with new IDs,
 but its content still refers to the same files.
-
-%\begin{equation} \label{eq:delete}
-%    \begin{split}
-%        f' = f \in (u, read(c)),  \\
-%        u, delete(c) \Implies \\
-%        c \not \in C \land f' \in F
-%    \end{split}
-%\end{equation}
 
 \subsection{Interaction of Multiple Accesses} \label{sec:multiple_access}
 As a result of consequence~\ref{eq:contentupdate} and~\ref{eq:containerupdate} in
@@ -1045,10 +1060,9 @@ back-end written in Scala and a front-end written in Javascript (ES6), but they 
 interchangeable. The back-end has a REST API running, which is how the front-end communicates with
 the back-end.
 
-\fix Picture of the newest front-end
 \begin{figure}[H] 
     \centering{
-        \includegraphics[scale=0.4]{frontend.png}
+        \includegraphics[scale=0.35]{frontend.png}
     }
     \caption{Front-end~\cite{BTRFS}}
     \label{fig:frontend}
