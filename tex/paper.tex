@@ -194,7 +194,7 @@ operation to take snapshots of parts of the system.
 
 The research question that this report tries to answer is how and whether it is practically 
 feasible to use Copy-on-Write for a high-level system like the one that is implemented and how 
-it can effect the system's scalability. 
+it can affect the system's scalability. 
 
 \newpage
 \section{Background}
@@ -300,7 +300,7 @@ refer to unchanged data that is still a part of the system~\cite{SNAPSHOT}.
 \end{description}
 \newpage
 \section{Model} \label{sec:model}
-This section describes how different operations can be expected to effect the data in the system.
+This section describes how different operations can be expected to affect the data in the system.
 The model for this work also shows how the data can only be accessed or modified by
 authorized users and how the defined integrity of the data is always kept. 
 
@@ -417,14 +417,14 @@ what its creator intended ~\cite{BIBA}.
 \\
 The invariant for this model is the file. Which means that it should not be possible to
 change a file though out the cycle of operation without creating a new file object with a new
-identifier. This is to ensure that files can not lose their integrity by simultaneous
+identifier. This is to ensure that files can not lose their integrity by concurrent
 operations from different nodes or get mixed up when referred to from a content object. 
 
 \subsection{Initial Assumptions}
 To create an integrity model, some initial assumptions have to be made about what the correct
 behaviour of the system is, which the model then can be shown to follow. In this work unintentional
 behaviour as the result of data modification is the main concern, which could be used for sabotage
-or simply be the effect unintentional unfortunate race conditions etc. 
+or simply be the effect of unintentional race conditions etc. 
 
 \subsection{Integrity Threats}
 According to Biba et. al~\cite{BIBA} one can consider two threat sources, namely subsystem external
@@ -458,8 +458,9 @@ Section~\ref{sec:implementation}.
 \end{center}
 
 To describe a content object \textit{m} containing fileId \textit{f}, the following syntax is used:
-$[fileId = f.id, \dots] \in M$, the same syntax is also applied to different types of objects
-throughout the explanation of the model.
+$\{id = \dots , file = f\} \in M$, the same syntax is also applied to different types of objects
+throughout the explanation of the model. The \"fresh\" keyword applied to id means that it is a new
+globally unique identifier.
 
 If the user is irrelevant for the rule described, it is left out from the action, for example u,
 read(o) = read(o).
@@ -477,7 +478,7 @@ read(o) = read(o).
 A user \textit{u} with access rights to a parent container \textit{c} of content \textit{m}
 can read a file \textit{f} in content \textit{m}.
 
-These predicates are used in several places and are therefore named \textit{*}.
+The predicates in (\ref{eq:fileread}) are used in several places and are therefore named \textit{*}.
 
 \vspace{2em}
 \textbf{File Creation}
@@ -1610,7 +1611,7 @@ modifying project trees, a graph database should have been researched too.
 
 \subsection{Copy-on-Write's effect on Scalability}
 As no comparison with solutions that were not Copy-on-Write based were made, no scientific
-conclusions can be drawn from how its effect was on the scalability of the system. However some
+conclusions can be drawn from what its effect was on the scalability of the system. However some
 intuitively drawn conclusions can be suggested. If comparing to a system which uses a SQL database
 the Copy-on-write system would have an easier time to scale on the width as no global locks or
 transactions has to be used, which with high probability would slow down the system, especially when
