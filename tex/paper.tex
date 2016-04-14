@@ -486,7 +486,7 @@ The predicates in (\ref{eq:fileread}) are used in several places and are therefo
 \begin{equation} \label{eq:filecreate}
     \inferrule
     {C \ni c \\ A[u,c] \\ m \centernot \in c \\ \neg readOnly(c)} 
-    {(C \cup \{c'\}, F) \xrightarrow{u, create(m,c)} (C \cup \{c \cup \{m\}\}, F \cup \{m.file\})}
+    {(C \cup \{c\}, F) \xrightarrow{u, create(m,c)} (C \cup \{c \cup \{m\}\}, F \cup \{m.file\})}
 \end{equation}
 \vspace{1em}
 
