@@ -1,4 +1,4 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 %% Uppsala Beamer theme example by Frédéric Haziza <daz@it.uu.se>
 %%
@@ -87,6 +87,8 @@
 \usepackage[utf8]{inputenc} % or whatever
 
 \usepackage{mathptmx}
+\usepackage{mathpartir}
+\usepackage{centernot}
 \usepackage{helvet}
 %\usepackage{courier}
 
@@ -98,7 +100,7 @@
 %% MISC. INFORMATION
 %% -----------------------------------------------------------
 
-\title{Providing Access Control and Copy-on-Write for Content Distribution Network Assets}
+\title{Access Control for Content Distribution Network Assets}
 \subtitle{Researching Copy-on-Write solutions}
 
 \author[Lukas Klingsbo | \emph{lukl8671@student.uu.se}] % appears in the footline
@@ -108,12 +110,12 @@
 {Department of Information Technology\\Uppsala University}
 
 \date[]
-{\today}
+{April 20, 2016}
 
 %% \logo{...}
 
 %% This is only inserted into the PDF information catalog. Can be left out.
-\subject{Providing Access Control and Copy-on-Write for Content Distribution Network Assets}
+\subject{Access Control for Content Distribution Network Assets}
 
 %% -----------------------------------------------------------
 %% Extra ``local'' settings
@@ -166,22 +168,23 @@
   \centerline{\adjincludegraphics[width=0.2\linewidth,valign=T]{ghost}}
 \end{frame}
 
+\subsection{CDN}
+\begin{frame}
+  \frametitle{Content Distribution Network (CDN)}
+  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{cdn}}
+\end{frame}
+
 \subsection{BattleBinary}
 \begin{frame}
   \frametitle{BattleBinary}
   - A management system for CDN assets\\
+  \vspace{1em}
   What Uprise wanted:
   \begin{itemize}
     \item{Possibility to handle private assets}
     \item{Migration to their current technology stack}
     \item{Features like snapshots and branching}
   \end{itemize}
-\end{frame}
-
-\subsection{CDN}
-\begin{frame}
-  \frametitle{Content Distribution Network (CDN)}
-  \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{cdn}}
 \end{frame}
 
 \subsection{Copy-on-Write}
@@ -282,6 +285,8 @@
   \begin{itemize}
     \item{Describes the system that is to be implemented}
     \pause
+    \item{Defines the core operations}
+    \pause
     \item{Model informally checked through JPF}
     \pause
     \item{Inspired by Biba. et al}
@@ -290,16 +295,38 @@
 
 \begin{frame}
   \frametitle{Model - Sets}
-  Add image and explain the sets
+  \begin{center}
+      \begin{tabular}{ | l | l | l | l | p{5cm} |}
+          \hline
+          \textbf{Set} & \textbf{Name} & \textbf{Relation} & \textbf{Type} \\ \hline
+          \textbf{C} & Containers & $\textbf{C} \supseteq C \ni c$ & $\textbf{C}=P_{fin}(P_{fin}(C \cup M))$\\ \hline
+          \textbf{M} & Content & $\textbf{M} \supseteq M \ni m$ & $\textbf{M}=P_{fin}(M)$\\ \hline
+          \textbf{F} & Files & $\textbf{F} \supseteq F \ni f$ & $\textbf{F}=P_{fin}(F)$\\ \hline
+      \end{tabular}
+  \end{center}
 \end{frame}
 
 \begin{frame}
   \frametitle{Model - File Creation}
   Rule of Inference
-  \centerline{\adjincludegraphics[width=1.0\linewidth,valign=T]{eq}}
+  \begin{equation} \label{eq:filecreate}
+      \inferrule
+      {C \ni c \\ A[u,c] \\ m \centernot \in c \\ \neg readOnly(c)} 
+      {(C \cup \{c\}, F) \xrightarrow{u, create(m,c)} (C \cup \{c \cup \{m\}\}, F \cup
+      \{m.file\})}
+  \end{equation}
 \end{frame}
 
 \subsection{Implementation}
+\begin{frame}
+  \frametitle{Persistent Storage}
+  \centerline{\adjincludegraphics[width=0.4\linewidth,valign=T]{mongodb}}
+  \begin{itemize}
+    \item{Unaware of Copy-on-Write}
+    \item{JSON (sort of) documents stored instead of tables}
+  \end{itemize}
+\end{frame}
+
 \begin{frame}
   \frametitle{Stack}
   \centerline{\adjincludegraphics[width=0.9\linewidth,valign=T]{techstack}}

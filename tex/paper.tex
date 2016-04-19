@@ -128,7 +128,7 @@
 \providecommand{\keywords}[1]{\textbf{\textit{Keywords: }} #1}
 
 %}}}
-\title{\textbf{Providing Access Control and Copy-on-Write for Content Distribution Network Assets}}
+\title{\textbf{Access Control for Content Distribution Network Assets}}
 \author{Klingsbo, Lukas}
 
 %{{{
@@ -154,7 +154,7 @@ technique is shown to be quite efficient (scalable to >6.000 simultaneous active
 but a better solution is also suggested in the conclusion.\\
 
 \keywords{CDN, Copy-on-Write, Eventual Consistency, MongoDB, Persistent Storage, Scalability, 
-Software Security}
+Software Security, Access Control}
 \end{abstract}
 
 %{{{
@@ -194,7 +194,7 @@ operation to take snapshots of parts of the system.
 
 The research question that this report tries to answer is how and whether it is practically 
 feasible to use Copy-on-Write for a high-level system like the one that is implemented and how 
-it can affect the system's scalability. 
+it can effect the system's scalability. 
 
 \newpage
 \section{Background}
@@ -300,7 +300,7 @@ refer to unchanged data that is still a part of the system~\cite{SNAPSHOT}.
 \end{description}
 \newpage
 \section{Model} \label{sec:model}
-This section describes how different operations can be expected to affect the data in the system.
+This section describes how different operations can be expected to effect the data in the system.
 The model for this work also shows how the data can only be accessed or modified by
 authorized users and how the defined integrity of the data is always kept. 
 
