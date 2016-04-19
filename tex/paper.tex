@@ -599,7 +599,7 @@ Section~\ref{sec:conseq} there can be race conditions where the last write wins.
 solved by locks or transactions, but as updates are not based on each other, the trade-off for this
 inconsistency to scalability and speed is intentional. However, as can also be seen in
 consequence~\ref{eq:fileupdate}, if a file is removed from a content that file is not removed from
-the set of files, even though its modification process is the last one to write to the content.
+the set of files, even ough its modification process is the last one to write to the content.
 This is necessary as a file can be referenced from several content and the removal process can not
 atomically ensure that the file is not referred to by another content. This results in a lot of
 files in the system which are not referenced from anywhere. This can be solved by either making each
@@ -1167,48 +1167,49 @@ is what is discussed in this section.\\
 \par \textbf{GET single entity} \\
 When the back-end is handed a GET request it looks at what type of entity that is requested and
 returns the document with the correct ID from the corresponding collection. As the collections are
-hash indexed on ID this operation can be made in constant time, O(1) and thus $\theta(1)$. \\
+hash indexed on ID this operation can be made in constant time, $O(1)$ and thus $\theta(1)$. \\
 
 \par \textbf{GET project tree} \\
 When requesting a project the full project tree with all entities except files has to be built as
 the entities not are stored as a tree in MongoDB. The tree is built layer by layer by fetching
 content with the same parent ID, starting from the root of the project. Parent ID's are also indexed
 by a hash index which makes it possible to get all nodes with the same parent ID in constant time.
-This has to be done for every level with a different parent in the tree which makes the upper bound
-O(n) if all of the subtrees only have one node each. The tight bound can not be calculated as the
-trees balance is not determined by an algorithm but rather by a user, but from observation one could
-argue that the trees usually have several nodes for each parent node in the tree, which then would
-give a logarithmic tight bound, $\theta(log(n))$.\\
+This has to be done for every level with a different parent. The worst case for building the tree is
+thus $\theta(h)$ where h is the height of the tree and all of the subtrees only have one node each.
+The average case can not be calculated as the tree's balance is not determined by an algorithm but
+rather by a user, but from observation one could argue that the trees usually have several nodes for
+each parent node in the tree, which then would give a logarithmic average case, $\theta(log(n))$.\\
 
 \par \textbf{POST/Create entity} \\
 Creating a new entity in the system is a constant time operation for containers and content as they
-only have to be inserted as new documents in MongoDB, which is a O(1)
+only have to be inserted as new documents in MongoDB, which is a $O(1)$
 operation~\cite{MONGOPERFORMANCE}. Even though the insertion itself has constant run-time the index
 needs to be updated or sometimes even rebuilt, which can slow down the time before the document is
 accessible in constant time. When inserting files they need to be chunked into pieces and inserted
-into GridFS, this results in n/s insertions where n is the size of the file and s is the chunk size.
-The insertion of files can then be regarded as O(n) if the size of the file is regarded, but if n is
-regarded as the number of files in the system the upper bound is constant as the insertion for files
-is made in the same way as for other documents.\\
+into GridFS, this results in $c/s$ insertions where $c$ is the size of the file and s is the chunk size.
+The insertion of files can then be regarded as $\theta(c)$ if the size of the file is regarded, but
+if $c$ is regarded as the number of files in the system the upper bound is constant as the insertion
+for files is made in the same way as for other documents.\\
 
 \par \textbf{Snapshot creation} \\
 In the creation of a snapshot all metadata in the tree that the snapshot is taken of is duplicated,
-meanwhile the files remain the same, this results in n insertions where n is the number of
-containers and content entities in the subtree. A snapshot insertions runtime is therefore
-$\theta(n)$ and O(n). \\
+meanwhile the files remain the same, this results in $n$ insertions where $n$ is the number of
+containers and content entities in the subtree. A snapshots insertion runtime is therefore
+always $\theta(n)$. \\
 
-\par \textbf{Delete entity} \\
+\par \textbf{Delete entity} \\ 
 Deleting an entity is a constant time operation when that entity does not have any children. When
 the entity has children all those children has to be deleted too which will be done in the same
-manner as the project tree is built and therefore results in the same runtime, O(n) as an upper
-bound, where n is the number of entities in the subtree.\\
+manner as the project tree is built and therefore results in the same runtime, $\theta(n)$ as worst
+case and $\theta(log(n))$ as average (with the same argumentation as in \textit{GET project tree}),
+where $n$ is the number of entities in the subtree.\\
 
 \par \textbf{PUT/Update entity} \\
 The update operation in MongoDB completely replaces a document with another in regards to their
 unique identifier. This could be seen as a deletion of the old document and an insertion of a new
 one, but with the same ID, which makes it unnecessary to update the index for the unique ID. Other 
 indices might have to be updated though, if for example the parent of the document is changed. 
-As both deletion and insertion are constant time operations, update is also O(1).\\
+As both deletion and insertion are constant time operations, update is also $O(1)$.\\
 
 \subsubsection{Copy-on-Write}
 This implementation is far from as efficient as the other Copy-on-Write systems described in
