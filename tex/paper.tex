@@ -472,9 +472,9 @@ read(o) = read(o).
 \vspace{1em}
 The following predicates are used in several places and are therefore named \textit{*} to avoid
 unnecessary repetition.
-\begin{equation} \label{eq:fileread}
+\begin{equation} \label{eq:predicate_rules}
     \inferrule
-    {(\textbf{*}) \\ C \ni c \ni m \\ $A[u,c]$} 
+    {(\textbf{*}) \\ C \ni c \ni m \\ A[u,c]} 
     {}
 \end{equation}
 \vspace{1em}
@@ -498,7 +498,7 @@ can read a file~\(f\) in content \textit{m}.
 \vspace{1em}
 \begin{equation} \label{eq:filecreate}
     \inferrule
-    {C \ni c \\ $A[u,c]$ \\ m \centernot \in c \\ \neg readOnly(c)} 
+    {C \ni c \\ A[u,c] \\ m \centernot \in c \\ \neg readOnly(c)} 
     {(C \cup \{c\}, F) \xrightarrow{u, create(m,c)} (C \cup \{c \cup \{m\}\}, F \cup \{m.file\})}
 \end{equation}
 \vspace{1em}
