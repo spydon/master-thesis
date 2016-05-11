@@ -169,11 +169,12 @@ Software Security, Access Control}
 
 %}}}
 \section{Introduction}
-Developing large projects containing static content usually involves using a Content Distribution
-Network to be able to scale to a larger user base. The commercial Content Distribution Networks are
-usually fairly easy to use. The content that is to be used in a project is uploaded and then
-distributed over the globe when a client is trying to access the content. For secret content this
-can be a problem and an inconvenience, and that is what this thesis is about. 
+The development of large projects using static content usually involves the use of a Content
+Distribution Network to be able to scale to a larger user base. Commercial Content Distribution
+Networks are usually fairly easy to use. The content that is to be used in a project is uploaded and
+then distributed over the globe when a client is trying to access the content. For secret content
+this can be a problem and an inconvenience due to the lack of tools available to handle groups of
+content and their security settings, and that is what this thesis is about. 
 
 When looking at the game industry, secret content could be anything from a picture related to a yet
 unreleased game to an internal video only intended for employees. Some secret content needs to stay
@@ -182,25 +183,29 @@ game is in a closed alpha stage, the content should only be accessible by the pe
 But when that game later moves into an open beta phase (open for public), the content needs to be
 publicly accessible. 
 
-As large projects most often are divided into different dividable parts, a concept called containers
-is introduced in this work. Containers can contain more containers and content, and when
-modifying the security settings for a container it is applied recursively to all its content and
-sub-containers.
+As large projects most often are divided into parts, a concept called containers is introduced in
+this work. Containers can contain more containers and content, and when modifying the security
+settings for a container it is applied recursively to all its content and sub-containers.
 
-This work examines a way of enforcing virtual access control on content and groups of content, in
-the form of containers and snapshots to be able to handle the secrecy requirements easily. A system
-was developed using the Copy-on-Write principle to improve scalability and make it a lighter
-operation to take snapshots of parts of the system. 
+This work examines a way of enforcing access control on content and groups of content, in the form
+of containers and snapshots. By being able to control the secrecy settings on a container instead of
+separately modifying the settings for each individual content it becomes easier to release content
+to be accessible to the public or different groups during the progression of the project. To manage
+different versions or releases of the project, the snapshot functionality can be used to handle
+access control by taking a snapshot with the correct security settings at each release.
 
-The research question that this report tries to answer is how and whether it is practically 
-feasible to use Copy-on-Write for a high-level system like the one that is implemented and how 
-it can effect the system's scalability. 
+A system was developed using the Copy-on-Write principle to improve scalability and make it a
+lighter operation to take snapshots of parts of the system. 
+
+The research question that this report tries to answer is how and whether it is practically feasible
+to use Copy-on-Write for a high-level storage system and how it can affect the scalability of the
+system. 
 
 \newpage
 \section{Background}
-This section gives the reader some background of the company where the thesis was written and
-implementation was made. It also gives some brief explanations of the core concepts which are 
-exerted throughout this work. 
+This section gives the reader some background of the company where the thesis was written and the
+implementation was made. It also gives some brief explanations of the core concepts which are used
+throughout this work. 
 
 \subsection{About Uprise}
 Uprise (formerly known as ESN) is a company based in Uppsala, Sweden. It is an EA studio focusing on
@@ -230,17 +235,17 @@ optimisations can be done to simplify that structure~\cite{COPYONWRITE2}.
 
 \subsubsection{Snapshots}
 Several filesystems~\cite{BTRFS}\cite{ZFS} use snapshot techniques to make it possible for a user
-or system to roll back the filesystems state, to a state that the filesystem had at the time of
+or system to roll back the system's state, to a state that the filesystem had at the time of
 snapshot creation. This can be useful for example when having a stable system and then doing a
 system update, if the system does not respond well to the update the filesystem can be rolled
 back to its previous stable state, provided that a snapshot was created before the update procedure.
 
-This work has taken a lot inspiration from the way BTRFS~\cite{BTRFS} handles snapshots, which is
-further explained in Section~\ref{sec:btrfs}.
+This work has taken a lot inspiration from the way the BTRFS filesystem~\cite{BTRFS} handles
+snapshots, which is further explained in Section~\ref{sec:btrfs}.
 
 \newpage
 \subsection{Related Terminology}
-In this section concepts and abbreviations, that are recurring throughout the paper, which the
+In this section concepts and abbreviations that are recurring throughout the paper and which the
 reader needs to be familiar with are explained.
 
 \subsubsection{Abbreviations}
@@ -267,11 +272,11 @@ checking of concurrent programs to easily find for example race conditions and d
 \subsubsection{Terms}
 \begin{description}
 \item[Eventual Consistency] \hfill \\
-Eventual consistency is an informal guarantee that defines how the consistency of stored data can
-behave. In a system defined as using eventual consistency, access to stored data is not guaranteed
-to return the result of the latest modification. At some point, if modifications to the stored data
-stop, access to a data item will return the resulting data of the last modification of that
-item.~\cite{EVENTUAL}. It is often used in the context of database systems.
+Eventual consistency~\cite{EVENTUAL} is an informal guarantee that defines how the consistency of
+stored data can behave. In a system defined as using eventual consistency, access to stored data is
+not guaranteed to return the result of the latest modification. At some point, if modifications to
+the stored data stop, access to a data item will return the resulting data of the last modification
+of that item. It is often used in the context of database systems.
 
 The effect of the lack of a strong consistency requirement is that persistent storages, especially
 distributed databases, can operate faster since there is no need for locks or transactions.  This
@@ -348,9 +353,9 @@ Foundations}~\cite{BLP1} by Bell \& LaPadula.
     \begin{tabular}{ | l | l | l | p{5cm} |}
         \hline
         \textbf{Set} & \textbf{Relation} & \textbf{Type} \\ \hline
-        \textbf{C} & $\textbf{C} \supseteq C \ni c$ & $\textbf{C}=P_{fin}(P_{fin}(C \cup M))$\\ \hline
-        \textbf{M} & $\textbf{M} \supseteq M \ni m$ & $\textbf{M}=P_{fin}(M)$\\ \hline
-        \textbf{F} & $\textbf{F} \supseteq F \ni f$ & $\textbf{F}=P_{fin}(F)$\\ \hline
+        \textbf{C} & $\textbf{C} \supseteq C \ni c$ & $\textbf{C}=P_\mathit{fin}(P_\mathit{fin}(C \cup M))$\\ \hline
+        \textbf{M} & $\textbf{M} \supseteq M \ni m$ & $\textbf{M}=P_\mathit{fin}(M)$\\ \hline
+        \textbf{F} & $\textbf{F} \supseteq F \ni f$ & $\textbf{F}=P_\mathit{fin}(F)$\\ \hline
     \end{tabular}
 \end{center}
 
@@ -362,7 +367,7 @@ members of that type.
         \hline
         \textbf{Element} & \textbf{Type} \\ \hline
         c & $C \cup M$ \\ \hline
-        m & $\{id: GUID, file: f\}$ \\ \hline
+        m & $\{\mathit{id}: \mathit{GUID}, \mathit{file}: f\}$ \\ \hline
         f & File \\ \hline
     \end{tabular}
 \end{center}
@@ -388,24 +393,24 @@ members of that type.
 
 \item[Access Matrix] \hfill \\
     The access matrix contains what containers that all the users in the system have access to. If
-    A[u,c] is true in the access matrix, user \textit{u} has access to container \textit{c}.
+    $A[u,c]$ is true in the access matrix, user \textit{u} has access to container \textit{c}.
 
 \end{description}
 
 \subsection{Access rights}
 Access is only handled on containers and if a user has access to a container it also has access to
 all of that containers children.
-The \textit{A[u,c]} notation is symbolising an access token. If \textit{A[u,c]} is true in the 
+The $A[u,c]$ notation is symbolising an access token. If $A[u,c]$ is true in the 
 access matrix \textit{A}, user \textit{u} has full access to the container object \textit{c} and its
 children. If it is false or if the entry does not exist in the access matrix, the user \textit{u}
 does not have any access rights for \textit{c}. 
 
 \begin{equation}
     \begin{split}
-        A[u,c] \Rightarrow & u \text{ can read } c \\
-        A[u,c] \land \neg \text{ read-only(c) } \Rightarrow & u \text{ can write to } c \\
-        A[u,c] \land \neg \text{ read-only(c) } \Rightarrow & u \text{ can delete } c \\
-        A[u,c] \land f \in c \centernot\Rightarrow & u \text{ can delete } f 
+        A[u,c] \Rightarrow{}& u \text{ can read } c \\
+        A[u,c] \land \neg \text{ read-only(c) } \Rightarrow{}& u \text{ can write to } c \\
+        A[u,c] \land \neg \text{ read-only(c) } \Rightarrow{}& u \text{ can delete } c \\
+        A[u,c] \land f \in c \centernot\Rightarrow{}& u \text{ can delete } f 
     \end{split}
 \end{equation}
 
@@ -416,7 +421,7 @@ does not guarantee an absolute behaviour of the system, but rather that it perfo
 what its creator intended ~\cite{BIBA}.
 \\
 The invariant for this model is the file. Which means that it should not be possible to
-change a file though out the cycle of operation without creating a new file object with a new
+change a file through out the cycle of operation without creating a new file object with a new
 identifier. This is to ensure that files can not lose their integrity by concurrent
 operations from different nodes or get mixed up when referred to from a content object. 
 
@@ -427,23 +432,22 @@ behaviour as the result of data modification is the main concern, which could be
 or simply be the effect of unintentional race conditions etc. 
 
 \subsection{Integrity Threats}
-According to Biba et. al~\cite{BIBA} one can consider two threat sources, namely subsystem external
+According to Biba et al.~\cite{BIBA} one can consider two threat sources, namely subsystem external
 and subsystem internal. The external sources could be another system calling the subsystem with
 faulty data or trying to make inaccurate calls to program functions. Another external source could
 also be somebody trying to tamper with the exposed functions of the program. Threats that are
-internal could be a malicious part of the subsystem or simply an incorrect part of the subsystem,
-which does not behave according to its specification.
+internal could be a malicious part of the subsystem or simply an incorrect part of the subsystem
+that does not behave according to its specification.
 
 In this work external threats are handled as threats that can occur from what has been exposed by
 the API (See Section~\ref{sec:API}) and internal threats as incorrect implementation. As the server
 and its system are assumed safe, malicious subsystems are not considered.
 
-\subsection{Consequences of modification} \label{sec:conseq}
+\subsection{Consequences of Operations} \label{sec:conseq}
 
-In this section the consequences, side effects and direct effects, of different operations are
+In this section the preconditions and effects of different operations are
 stated in an informal mathematical manner, similar to how inference rules are composed. These rules
-are what should be expected to be followed by the implementation in
-Section~\ref{sec:implementation}. 
+should be followed by the implementation in Section~\ref{sec:implementation}. 
 
 \begin{center}
     \begin{tabular}{ | l | l | l | p{5cm} |}
@@ -465,33 +469,42 @@ globally unique identifier.
 If the user is irrelevant for the rule described, it is left out from the action, for example u,
 read(o) = read(o).
 
+\vspace{1em}
+The following predicates are used in several places and are therefore named \textit{*} to avoid
+unnecessary repetition.
+\begin{equation} \label{eq:fileread}
+    \inferrule
+    {(\textbf{*}) \\ C \ni c \ni m \\ $A[u,c]$} 
+    {}
+\end{equation}
+\vspace{1em}
+
 \vspace{2em}
 \textbf{File Read}
 \vspace{1em}
 \begin{equation} \label{eq:fileread}
     \inferrule
-    {(\textbf{*}) \\ C \ni c \ni m \\ A[u,c]} 
+    {(\textbf{*})} 
     {(C, F) \xrightarrow{u, read(m,f)} (C, F)}
 \end{equation}
 \vspace{1em}
 
 A user \textit{u} with access rights to a parent container \textit{c} of content \textit{m}
-can read a file \textit{f} in content \textit{m}.
+can read a file~\(f\) in content \textit{m}.
 
-The predicates in (\ref{eq:fileread}) are used in several places and are therefore named \textit{*}.
 
 \vspace{2em}
 \textbf{File Creation}
 \vspace{1em}
 \begin{equation} \label{eq:filecreate}
     \inferrule
-    {C \ni c \\ A[u,c] \\ m \centernot \in c \\ \neg readOnly(c)} 
+    {C \ni c \\ $A[u,c]$ \\ m \centernot \in c \\ \neg readOnly(c)} 
     {(C \cup \{c\}, F) \xrightarrow{u, create(m,c)} (C \cup \{c \cup \{m\}\}, F \cup \{m.file\})}
 \end{equation}
 \vspace{1em}
 
-A user \textit{u} with access rights to a non-readonly container \textit{c} can create a content
-\textit{m}, containing a file \textit{f}, in container \textit{c}.
+A user \textit{u} with access rights to a non-readonly container \textit{c} can create a
+content~\(m\), containing a file \textit{f}, in container \textit{c}.
 
 \vspace{2em}
 \textbf{File Update}
@@ -551,9 +564,9 @@ container is directly changed, without any Copy-on-Write.
 \end{equation}
 \vspace{1em}
 
-If a user \textit{u} with access rights to the parent (source and destination) container \textit{c}
+If a user \textit{u} with access rights to the parent (source and destination) container~\(c\)
 of content \textit{m} copies that content, the new content \textit{m'} is not equal to the old
-(because of its new ID), however they both contain the same file.
+(because of its fresh ID), however they both contain the same file.
 
 \vspace{2em}
 \textbf{Content Deletion}
@@ -573,16 +586,17 @@ deletes that content, the file \textit{f} referred to in the content is not dele
 \vspace{1em}
 \begin{equation} \label{eq:snapshot}
     \begin{split}
-        [C', M'] := snapshot(tree) & \Implies \\
-        \forall c \in tree, copy(c) \in & C' \\
-        \forall m \in tree, copy(m) \in & M' \\
-        \forall f \in tree, f \in & F
+        [C', M'] := snapshot(tree) {}& \Implies \\
+        \forall c \in tree, copy(c) \in {}& C' \\
+        \forall m \in tree, copy(m) \in {}& M' \\
+        \forall f \in tree, f \in {}& F
     \end{split}
 \end{equation}
 
-To explain the non-trivial snapshot operation it is first defined in \ref{eq:snapshot}. The snapshot
-operation is performed upon a tree of objects and results in two new sets (C' and M'), one with
-containers and one with content, the referred files remain the same as before the snapshot.
+The non-trivial snapshot operation makes a deep-copy by traversing the full tree or sub-tree of
+containers and content that is to be taken a snapshot of. As the snapshot operation is performed
+upon a tree of objects it results in two new sets (C' and M') which are then added to C and M
+respectively, the referred files in the content remain the same as before the snapshot.
 
 \vspace{2em}
 \begin{equation} \label{eq:snapshot2}
@@ -597,7 +611,7 @@ but its content still refers to the same files.
 As a result of consequence~\ref{eq:contentupdate} and~\ref{eq:containerupdate} in
 Section~\ref{sec:conseq} there can be race conditions where the last write wins. This could be
 solved by locks or transactions, but as updates are not based on each other, the trade-off for this
-inconsistency to scalability and speed is intentional. However, as can also be seen in
+inconsistency in favour of scalability and speed is intentional. However, as can also be seen in
 consequence~\ref{eq:fileupdate}, if a file is removed from a content that file is not removed from
 the set of files, even ough its modification process is the last one to write to the content.
 This is necessary as a file can be referenced from several content and the removal process can not
@@ -608,15 +622,16 @@ and delete the file in an atomic fashion. An easier approach would be to have a 
 which locks parts of the system momentarily meanwhile it removes files which are not referenced. 
 
 \par
-There is also the chance to have content and containers that are not referenced from anywhere and
-result in being garbage in the system. This could happen as a result of consequence~\ref{eq:delete}
-in combination with any of the other consequences listed in Section~\ref{sec:conseq}. The basic idea
-is that an entity is deleted meanwhile another is created or modified to have that entity as its
-parent, thus creating a separate tree that can not be reached from the root node of the project.
-These type of inconveniences should also be cleaned up by the garbage collector.
+There is also the chance to have content and containers that are not referenced from anywhere, these
+containers and content are defined as garbage. This could happen as a result of
+consequence~\ref{eq:delete} in combination with any of the other consequences listed in
+Section~\ref{sec:conseq}. The basic idea is that an entity is deleted while another is created or
+modified to have that entity as its parent, thus creating a separate tree that can not be reached
+from the root container. These entities should be removed, for example by a garbage collector, or
+made sure to be deleted in the instance when they are no longer referenced.
 
 \subsection{JPF}
-JPF was used to test the idea and state transitioning of the model. It is a very simplified
+JPF was used to test the idea and state transitions of the model. It is a very simplified
 version of the real system that still contains all the important Copy-on-Write concepts and the 
 assumptions that have been made in the model. This simplified version was then used to automatically
 test for unwanted quirks. It is not a proof that the model works, but it is very exhaustive in its
@@ -692,10 +707,10 @@ loaded code:        classes=111,
 This section summarises the findings from the work on the model. 
 
 \subsubsection{Garbage Collection}
-For the system to reach a clean state and the decided eventual consistency~\cite{KLINGSBO}, garbage
-collection will be needed. As of the conclusion in Section~\ref{sec:multiple_access} from Section
-~\ref{sec:conseq} there will be objects in the system that are unreferenced and can not be reached
-and should therefore be cleaned up for them not to cause negative performance effects on the system.
+For the system to reach a clean state and eventual consistency~\cite{KLINGSBO}, garbage collection
+or reference counters will be needed. The conclusion of Section~\ref{sec:multiple_access} is that
+there will be objects in the system that are unreferenced and can not be reached and they should
+therefore be cleaned up to not cause negative performance impact on the system.
 
 \subsubsection{Conflict Resolution} \label{sec:conflict_res}
 If the persistent storage would be distributed, the different database nodes would have to have rules
@@ -1643,10 +1658,16 @@ on observation, no logging of a system used in production (as no such system exi
 to back up that estimation. In the future those numbers can easily be recalculated, when there are
 enough metrics from a fully deployed version of Perius.
 
+\subsection{Access Control} \label{sec:disc_access_control}
+Full object-level access control was not implemented according to the model described in
+Section~\ref{sec:model}. The implementation only checks whether a user should have access to the
+system as a whole, and does not set, nor check, specific access rights to contents or containers.
+
+
 \newpage
 \section{Summary}
-This section covers the conclusions that could be drawn from this work and how the implementation 
-could, and will be, extended in the future.
+This section covers the conclusions that I draw from this work and how I plan to extend the
+implementation in the future.
 
 \subsection{Conclusions}
 The goal of this thesis was to see whether it was feasible to use Copy-on-Write in a high-level
@@ -1660,10 +1681,11 @@ last-write-wins manner when modified.
 
 \par If this application would be distributed with several persistent storage nodes like MongoDB,
 the application would not always be in a global consistent state as there would not be any global
-locks.  This could theoretically cause some inconvenience for the user but in all real world
-observations no users have noticed it. The theoretical inconvenience for the user was a trade-off
-made so that the application could scale on the width almost endlessly, especially if the issue with
-building the project trees is solved (as mentioned in Section~\ref{sec:load_testing}).
+locks. This could theoretically cause some inconvenience for the user where last write
+wins~\cite{LASTWRITEWINS} on meta data, but in all real world observations no users have noticed it.
+The theoretical inconvenience for the user was a trade-off made so that the application could scale
+almost endlessly, especially if the issue with building the project trees is solved (as mentioned in
+Section~\ref{sec:load_testing}).
 
 \par The positive effects of deploying Perius instead of its predecessor was not only about
 scaling, it also features a more secure way of handling private assets 
@@ -1672,63 +1694,31 @@ administration needed to control the security settings of large groups of assets
 (Section~\ref{sec:cdn_connections}) at the same time.
 
 \par The conclusion that can be drawn from implementing Copy-on-Write as high up in the stack as it
-was in Perius is that the code would have to be largely rewritten for every application that wants
-to use a similar approach. The solution to this could be to use Copy-on-Write in the persistent
-storage instead of in the actual application, which also efficiently could handle conflict 
-resolution and every improvement made to it could be shared for every system that uses the same 
-type of system architecture and underlying persistent storage. On the other hand, by having all the
-Copy-on-Write specific code in the back-end instead of the persistent storage the choices of
-storage becomes wider as the database does not have to implement the named things. This could be
-positive when deploying Perius in environments with high requirements for the number of users
-that the system should be able to handle. It would also be well suited if the level of consistency
-needs to be fully tweakable to make the trade off for how many users the application would work for
-and consistency of data.
+was in Perius is that the persistent storage logic would have to be largely rewritten for every
+existing application that is to use a similar approach. The solution to this could be to use
+Copy-on-Write in the persistent storage instead of in the actual application. This approach could
+efficiently handle conflict resolution and every improvement made to it could be shared for every
+system that uses the same type of system architecture and underlying persistent storage. On the
+other hand, by having all the Copy-on-Write specific code in the back-end instead of the persistent
+storage the choices of storage becomes wider as the database does not have to implement
+Copy-on-Write and conflict resolution. This could be an advantage when deploying Perius in
+environments with high requirements for the number of users that the system should be able to
+handle. It would also be well suited if the level of consistency needs to be fully tweakable to make
+it possible to trade off consistency for scalability.
 
 \subsection{Future work}
 \subsubsection{Access Control}
-Full access control was not implemented according to the model described in ~\ref{sec:model}, it
-was only implemented to check whether a user should have access to the system as a whole or not, the
-implementation did not set or check any specific access rights to certain contents or containers.
+As access control was not fully implemented (See Section~\ref{sec:disc_access_control}) as planned 
+in the model, the implementation will need to be extended in the future.
 
 \subsubsection{Front-end Refactorization}
-The application could be made substantially more efficient by rewriting the front-end to update
-itself according to the REST response after a modification of the project tree, instead of 
-re-fetching the full project tree every time a change is made. The front-end should also be fixed to
-properly follow the Reflux streamlining.
+Currently the implementation fetches the full project tree every time a change is made. This results
+in increased latency, bandwidth usage and server load. We propose a refactorization of the front-end
+where it updates the state according to the REST response of each modification to the project tree
+instead of re-fetching it.
 
 \newpage
 \bibliographystyle{ieeetr}
 \bibliography{references}
 
 \end{document}
-
-
-%{{{
-
-%What to write about
-%Battle Binary
-%Security features of CDNn's
-%What is needed by the logic, like what happens after two consecutive deletes
-%
-%What is needed
-%* Security layers
-%* snapshots
-%* Virtual file structure
-%* Versioning of content
-%* Multi project support
-%* Auth and audit logs
-%* Users
-
-%Stuff to write about:
-%Modular design, every piece should be interchangeable
-%LDAP - why it was used as standard AUTH
-
-%Using copy-on-write as the sole update strategy has pros and cons. The upside is
-%that it is simple to guarantee operation atomicity, and data-structure integrity. The
-%downside is that performance relies on the ability to maintain large extents of free
-%contiguous disk areas. In addition, random updates to a f i le tend to fragment it,
-%destroying sequentiality. A good defragmentation algorithm is required; this is
-%described in Section 5
-
-%}}}
-
