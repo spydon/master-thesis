@@ -453,10 +453,11 @@ should be followed by the implementation in Section~\ref{sec:implementation}.
     \begin{tabular}{ | l | l | l | p{5cm} |}
         \hline
         \textbf{Action} & \textbf{Semantics} \\ \hline
-        u, read(m, f)    & User \textit{u} reads \textit{f} from \textit{m}\\ \hline
+        u, read(o)       & User \textit{u} reads \textit{o}\\ \hline
         u, create(m, c)  & User \textit{u} creates \textit{m} in \textit{c}\\ \hline
         u, update(m, f)  & User \textit{u} updates \textit{f} with \textit{m}\\ \hline
         u, delete(o)     & User \textit{u} deletes \textit{o}\\ \hline
+        u, copy(o)       & User \textit{u} creates a copy of \textit{o}\\ \hline
         u, snapshot(o)   & User \textit{u} takes a snapshot of \textit{o} \\ \hline
     \end{tabular}
 \end{center}
@@ -470,22 +471,14 @@ To explain a change of a container the notation $C[c]$ is used when removing or 
 container from the set. $C[\cdot]$ is a \textit{C} that can contain the meta variable $\cdot$ and
 $C[c]$ is $C[\cdot]$ where $\cdot$ has been replaced by \textit{c}.
 
-\vspace{1em}
-The following predicates are used in several places and are therefore named \textit{*} to avoid
-unnecessary repetition.
-\begin{equation} \label{eq:predicate_rules}
-    \inferrule
-    {(\textbf{*}) \\ C \ni c \ni m \\ A[u,c]} 
-    {}
-\end{equation}
 
 \vspace{1em}
 \textbf{File Read}
 \vspace{1em}
 \begin{equation} \label{eq:fileread}
     \inferrule
-    {(\textbf{*})} 
-    {(C, F) \xrightarrow{u, read(m,f)} (C, F)}
+    {A[u,c] \\ C[c \cup \{m\}]} 
+    {(C[c], F) \xrightarrow{u, read(f)} (C[c], F)}
 \end{equation}
 \vspace{1em}
 
@@ -498,7 +491,7 @@ can read a file~\(f\) in content \textit{m}.
 \vspace{1em}
 \begin{equation} \label{eq:filecreate}
     \inferrule
-    {C \ni c \\ A[u,c] \\ m \centernot \in c \\ \neg readOnly(c)} 
+    {A[u,c] \\ m \centernot \in c \\ \neg readOnly(c)} 
     {(C[c], F) \xrightarrow{u, create(m,c)} (C[c \cup \{m\}], F \cup \{m.file\})}
 \end{equation}
 \vspace{1em}
@@ -511,7 +504,7 @@ content~\(m\), containing a file \textit{f}, in container \textit{c}.
 \vspace{1em}
 \begin{equation} \label{eq:fileupdate}
     \inferrule
-    {\textbf{*} \\ c' = c \cup \{m'\} \\ m' = \{id = m.id, file = f'\} \\ \neg readOnly(c)} 
+    {A[u,c] \\ m' = \{id = m.id, file = f'\} \\ \neg readOnly(c)} 
     {(C[c \cup \{m\}], F) \xrightarrow{u, update(m, f')} ((C[c \cup \{m'\}], F \cup \{f'\}))}
 \end{equation}
 \vspace{1em}
@@ -532,7 +525,7 @@ be deleted, see Consequence \ref{eq:delete}.
 \vspace{1em}
 \begin{equation} \label{eq:contentupdate}
     \inferrule
-    {\textbf{*} \\ \neg readOnly(c)}
+    {A[u,c] \\ \neg readOnly(c)}
     {(C[c \cup \{m\}], F) \xrightarrow{u, update(m, m')} ((C[c \cup \{m'\}], F)}
 \end{equation}
 \vspace{1em}
@@ -546,7 +539,7 @@ updates that content, the content is directly changed, without any Copy-on-Write
 \vspace{1em}
 \begin{equation} \label{eq:containerupdate}
     \inferrule
-    {\textbf{*} \\ \neg readOnly(c)}
+    {A[u,c] \\ \neg readOnly(c)}
     {(C[c], F) \xrightarrow{u, update(c, c')} (C[c'], F)}
 \end{equation}
 \vspace{1em}
@@ -559,8 +552,8 @@ container is directly changed, without any Copy-on-Write.
 \vspace{1em}
 \begin{equation} \label{eq:copy}
     \inferrule
-    {\textbf{*} \\ m' = \{id = \text{"fresh"}, file = m.file\} \\ \neg readOnly(c)}
-    {(C[c \cup \{m\}], F) \xrightarrow{u, create(c, m')} (C[c \cup \{m, m'\}], F)}
+    {A[u,c] \\ m' = \{id = \text{"fresh"}, file = m.file\} \\ \neg readOnly(c)}
+    {(C[c \cup \{m\}], F) \xrightarrow{u, copy(m)} (C[c \cup \{m, m'\}], F)}
 \end{equation}
 \vspace{1em}
 
@@ -573,8 +566,8 @@ of content \textit{m} copies that content, the new content \textit{m'} is not eq
 \vspace{1em}
 \begin{equation} \label{eq:delete}
     \inferrule
-    {\textbf{*} \\ \neg readOnly(c)}
-    {(C[m], F) \xrightarrow{u, delete(m)} (C[], F)}
+    {A[u,c] \\ \neg readOnly(c)}
+    {(C[c \cup \{m\}], F) \xrightarrow{u, delete(m)} (C[c \cup \{\}], F)}
 \end{equation}
 \vspace{1em}
 
@@ -586,14 +579,12 @@ deletes that content, the file \textit{f} referred to in the content is not dele
 \vspace{1em}
 \begin{equation} \label{eq:snapshot}
     \begin{split}
-        [C', M'] := snapshot(tree) {}& \Implies \\
-        \forall c \in tree, copy(c) \in {}& C' \\
-        \forall m \in tree, copy(m) \in {}& M' \\
-        \forall f \in tree, f \in {}& F
+        &snapshot(c) = \{c'.id = \textit{"fresh"}, snapshot(c') \mid c' \in c \} \cup \{ snapshot(m) \mid m \in c \}\\
+        &snapshot({id = i, file = f }) = \{ id = \text{"fresh"}, file = f \} 
     \end{split}
 \end{equation}
 
-The non-trivial snapshot operation makes a deep-copy by traversing the full tree or sub-tree of
+The snapshot operation makes a deep-copy by traversing the full tree or sub-tree of
 containers and content that is to be taken a snapshot of. As the snapshot operation is performed
 upon a tree of objects it results in two new sets (C' and M') which are then added to C and M
 respectively, the referred files in the content remain the same as before the snapshot.
@@ -601,8 +592,8 @@ respectively, the referred files in the content remain the same as before the sn
 \vspace{2em}
 \begin{equation} \label{eq:snapshot2}
     \inferrule
-    {\textbf{*} \\ \neg readOnly(c)}
-    {(C, F) \xrightarrow{[C', M'] := u, snapshot(c)} (C[C' \cup M'], F)}
+    {A[u,c] \\ \neg readOnly(c)}
+    {(C[c], F) \xrightarrow{u, copy(c)} (C[c \cup snapshot(c)], F)}
 \end{equation}
 If a user creates a snapshot of a container and the full container tree is re-created with new IDs,
 but its content still refers to the same files.
