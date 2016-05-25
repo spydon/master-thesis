@@ -477,8 +477,8 @@ $C[c]$ is $C[\cdot]$ where $\cdot$ has been replaced by \textit{c}.
 \vspace{1em}
 \begin{equation} \label{eq:fileread}
     \inferrule
-    {A[u,c] \\ C[c \cup \{m\}]} 
-    {(C[c], F) \xrightarrow{u, read(f)} (C[c], F)}
+    {A[u,c]]} 
+    {(C[c \cup \{m\}], F) \xrightarrow{u, read(f)} (C[c \cup \{m\}], F)}
 \end{equation}
 \vspace{1em}
 
@@ -505,7 +505,7 @@ content~\(m\), containing a file \textit{f}, in container \textit{c}.
 \begin{equation} \label{eq:fileupdate}
     \inferrule
     {A[u,c] \\ m' = \{id = m.id, file = f'\} \\ \neg readOnly(c)} 
-    {(C[c \cup \{m\}], F) \xrightarrow{u, update(m, f')} ((C[c \cup \{m'\}], F \cup \{f'\}))}
+    {(C[c \cup \{m\}], F) \xrightarrow{u, update(m, f')} (C[c \cup \{m'\}], F \cup \{f'\})}
 \end{equation}
 \vspace{1em}
 
@@ -526,7 +526,7 @@ be deleted, see Consequence \ref{eq:delete}.
 \begin{equation} \label{eq:contentupdate}
     \inferrule
     {A[u,c] \\ \neg readOnly(c)}
-    {(C[c \cup \{m\}], F) \xrightarrow{u, update(m, m')} ((C[c \cup \{m'\}], F)}
+    {(C[c \cup \{m\}], F) \xrightarrow{u, update(m, m')} (C[c \cup \{m'\}], F)}
 \end{equation}
 \vspace{1em}
 
@@ -579,7 +579,7 @@ deletes that content, the file \textit{f} referred to in the content is not dele
 \vspace{1em}
 \begin{equation} \label{eq:snapshot}
     \begin{split}
-        &snapshot(c) = \{c'.id = \textit{"fresh"}, snapshot(c') \mid c' \in c \} \cup \{ snapshot(m) \mid m \in c \}\\
+        &snapshot(c) = \{snapshot(c') \mid c' \in c \} \cup \{ snapshot(m) \mid m \in c \}\\
         &snapshot({id = i, file = f }) = \{ id = \text{"fresh"}, file = f \} 
     \end{split}
 \end{equation}
@@ -593,7 +593,7 @@ respectively, the referred files in the content remain the same as before the sn
 \begin{equation} \label{eq:snapshot2}
     \inferrule
     {A[u,c] \\ \neg readOnly(c)}
-    {(C[c], F) \xrightarrow{u, copy(c)} (C[c \cup snapshot(c)], F)}
+    {(C[c], F) \xrightarrow{u, copy(c)} (C[c, snapshot(c)], F)}
 \end{equation}
 If a user creates a snapshot of a container and the full container tree is re-created with new IDs,
 but its content still refers to the same files.
