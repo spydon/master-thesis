@@ -146,12 +146,13 @@
 
 %}}}
 \begin{abstract}
-This work presents a technique for implementing Copy-on-Write on top of an unaware persistent
-storage. The system in this case is a security management system, but the technique and conclusions
-drawn are general enough to be applicable to any system with vaguely similar consistency
-requirements. The scalability of the storage system is tested and the technique is evaluated. The
-technique is shown to be quite efficient (scalable to >6.000 simultaneous active users per node),
-but a better solution is also suggested in the conclusion.\\
+This work presents a technique for implementing Copy-on-Write on top of a persistent storage. The
+method was developed from the needs of a security management system, but the technique and
+conclusions drawn are general enough to be applicable to any system with vaguely similar consistency
+requirements. The scalability of the security management system is tested and the technique is
+evaluated with load testing and model checking. The implementation is shown to be scalable for up to
+>6.000 simultaneous active users per node, but based on our experience a better solution is 
+suggested in the conclusion.\\
 
 \keywords{CDN, Copy-on-Write, Eventual Consistency, MongoDB, Persistent Storage, Scalability, 
 Software Security, Access Control}
@@ -732,18 +733,18 @@ Section~\ref{sec:background} explains the problem at hand, in relation to the sy
 used.
 
 \subsubsection{The current system} \label{sec:current_system}
-Today a system called Battlebinary~\cite{BATTLEBINARY} is used for managing and uploading files,
-mostly images, to content delivery networks. The current system does not make use of the
+Today a system called Battlebinary~\cite{BATTLEBINARY} is used by Uprise for managing and uploading
+files, mostly images, to content delivery networks. The current system does not make use of the
 security features that the CDNs are offering, instead it uses a form of security by obscurity. When
-a file is uploaded to a CDN it is open for the public, but its filename is composed out of its
-original filename concatenated with a part of the MD5 hash of the content of the file, which makes
-it an extremely hard process to access the file on the CDN without access to the original file or a
-reference to the URI.
+a file is uploaded to a CDN it is available to the public, but since its identifier is composed out
+of its original filename concatenated with a part of the MD5 hash of the content of the file. This
+makes it a very computationally heavy process to access the file on the CDN without access to the
+original file or a reference to the URI, as the identifier would have to be brute forced.
 
-In the current system you can only upload a file once as there will be a collision in the upload
-otherwise, as the old and the new file will have the same MD5 hash, which is by design as duplicate
+In the current system you can only upload a file once, since there will be an identifier collision.
+This is due to the old and the new file having the same MD5 hash, which is by design as duplicate
 content just wastes space on the CDN. The problem with this is that the current interface does not
-handle it very well as one file can not be shown or uploaded in two different places in 
+handle it very well, since one file can not be shown or uploaded in two different places in
 Battlebinary's virtual filesystem.
 
 \subsubsection{Problem description}
