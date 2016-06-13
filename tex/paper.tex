@@ -748,11 +748,16 @@ handle it very well, since one file can not be shown or uploaded in two differen
 Battlebinary's virtual filesystem.
 
 \subsubsection{Problem description}
-The current system does not offer proper security measurements, is lacking a lot of features that
-are needed and does not scale very well, hence a new system are to be developed. This work is about
-examining a way of implementing Copy-on-Write in a high-level system like this, which should solve
-the scalability problem and make it possible to implement wanted features like snapshots, cloning
-and concurrent modifications of content.
+The current system does not offer proper security measurements as its mechanism for keeping private
+content out of the hands of the public is based on security by obscurity, which is further explained
+in Section~\ref{sec:current_system}. 
+
+It is also lacking several features that are needed and does not scale very well, hence a new system
+is to be developed. Features that needs to be implemented are for example snapshots, cloning and
+proper support of concurrent modifications of content. 
+
+This work is about examining a way of implementing Copy-on-Write in a high-level system, which
+should solve the scalability problem and make it possible to implement wanted features.
 
 \begin{figure}[H] 
     \centering
@@ -779,9 +784,8 @@ and concurrent modifications of content.
 \end{figure}
 
 To clarify what is meant by Perius being high-level software the stack in Figure~\ref{fig:stack} can
-be examined. Theoretically the Copy-on-Write features could be implemented in any of the separate
-parts of the stack to support the features that Perius has to achieve, in this work only the second
-highest layer is considered, the Perius back-end.
+be examined. Theoretically the Copy-on-Write features could be implemented in any part of the stack,
+in this work only the second highest layer is considered, the Perius back-end.
 
 \subsection{Architecture and Technologies used} \label{sec:tech}
 This section introduces the different technologies used in the implementation. The section also
@@ -807,12 +811,12 @@ is a programming language mainly focussed on running code in web browsers~\cite{
 implementation the ECMAScript 6 (ES6) language specification is used, which adds a lot of syntactic
 sugar compared to what usually is called normal JavaScript. An example of such syntactic sugar is
 lambda expressions. React and Reflux are both built with JavaScript in mind and is used on top of
-JavaScript is this implementation, as can be seen in Figure~\ref{fig:tech_stack}. 
+JavaScript in this implementation. 
 
 \item[SuperAgent]
 is a small HTTP request library which can be used from client-side Javascript or as a node.js
-module~\cite{SUPERAGENT}. It is used to form the requests to the REST API from the front-end, which
-can be seen in Figure~\ref{fig:tech_stack} (Arrow 1 and 2).
+module~\cite{SUPERAGENT}. It is used to form the requests to the REST API from the front-end, arrow
+1 and 2 in Figure~\ref{fig:tech_stack}.
 
 \item[React]
 is a JavaScript library for building user interfaces. React uses both its own virtual DOM and
@@ -827,7 +831,7 @@ front-end.
 is an idea and a simple library of how to structure your application~\cite{REFLUX}. It features a
 unidirectional dataflow (see Figure~\ref{fig:reflux}) which makes it more suitable, than for example
 Flux~\cite{FLUX}, when using a functional reactive programming style. Reflux is used together with
-React for this implementation to define a structure of the flow of data and state changes.
+React to define a structure of the flow of data and state changes.
 
 \begin{figure}[H] 
     \centering
@@ -839,8 +843,8 @@ React for this implementation to define a structure of the flow of data and stat
 \item[Scala]
 is a multi-paradigm programming language. It most commonly runs on the JVM and unlike Java it
 supports most functional programming features at the same time as it supports object-oriented
-programming~\cite{SCALA}. Scala is used to program the back-end and the Spray toolkit is used with
-it to simplify the API.
+programming~\cite{SCALA}. Scala is used to program the back-end and the Spray toolkit is used to
+simplify the API.
 
 \item[REST]
 stands for representational state transfer, it is an architectural idea for writing stateless
@@ -848,7 +852,7 @@ services. These services usually use URIs to identify specific resources and HTT
 these resources~\cite{REST}. 
 
 In this work a RESTful API was implemented and used for back-end $\Iff$ front-end
-communication, which can be seen in Figure~\ref{fig:tech_stack} (Arrow 1 and 2).
+communication, arrow 1 and 2 in Figure~\ref{fig:tech_stack}.
 
 REST was chosen as all operations that needs to be performed can be defined as basic CRUD operations
 and because the BSON format which is used in MongoDB is almost identical ~\cite{BSON} to the
@@ -887,41 +891,46 @@ The following endpoints were configured:
 \end{itemize}
 
 As can be seen several expected endpoints are missing, this is intentional as the operations missing
-can be performed in a more efficient way. Such endpoint is for example \textit{GET 
-projects/\{id\}/containers} as all containers exist in \textit{GET projects/\{id\}} and the interface
+can be performed in a more efficient way. Such endpoint is for example GET 
+projects/\{id\}/containers as all containers exist in GET projects/\{id\} and the interface
 should present a file structure where both content and containers are shown.
 
 % \hfill \\ %\label{sec:spray}
 \item[Spray]~\cite{CASBAH} % Spray in casbah book
-is an open-source toolkit written in Scala and for Scala. It is used to make it easier to build
-REST/HTTP APIs and those abilities is what it is used in the implementation.
+is an open-source toolkit written in Scala and for Scala. Spray is mainly used to make it easier to
+build REST/HTTP APIs.
+
+\item[Casbah]~\cite{CASBAH} % Spray in casbah book
+is a Scala toolkit and a java driver wrapper used to interface with MongoDB instances in a more
+Scala oriented way.
 
 \item[MongoDB]% \hfill \\ %\label{sec:spray}
-is a document-oriented database, which means that it does not have the concept of rows as
-normal relational databases has. Instead each entity in the database is stored as a document which
-is not fixed to a predefined table structure~\cite{MONGODB}. MongoDB lacks the support for joins to
-improve its possibility to scale, which can be a big downside to some applications containing the
-need for such logic. MongoDB is used as a persistent storage for the back-end to store all the
-projects and nodes in the tree structures and also the files uploaded to the system. The Scala logic
-code uses a layer called Casbah~\cite{CASBAH} to interface with MongoDB, which can be seen in
-Figure~\ref{fig:tech_stack} (Arrow 4 and 5).
+is a document-oriented database, which means that it does not have the concept of rows as normal
+relational databases has. Instead each entity in the database is stored as a document that is not
+fixed to a predefined table structure~\cite{MONGODB}. MongoDB lacks support for join operations to
+improve its possibility to scale, which can be a big disadvantage for applications having the need
+for such logic. MongoDB is used as a persistent storage for the back-end to store all the projects
+and nodes in the tree structures and also the files uploaded to the system. The Scala logic code
+uses a layer called Casbah~\cite{CASBAH} to interface with MongoDB, arrow 4 and 5 in
+Figure~\ref{fig:tech_stack}.
 
 \par MongoDB was chosen as the persistent storage because of its quick lookups and because of its
 internal storage format called BSON, which is very similar to JSON which the API is using. As the
 formats are similar, the process of marshalling and unmarshalling becomes quite easy between the
 core code, MongoDB instance and REST interface.  The second reason was that if the system needs to
-scale in the future it is very easy to distribute MongoDB and, if needed, the system can easily be
-migrated to Reactive Mongo. Reactive Mongo is an asynchronous and non-blocking driver for MongoDB
+scale in the future then it is very easy to distribute MongoDB and, if needed, the system can easily
+be migrated to Reactive Mongo. Reactive Mongo is an asynchronous and non-blocking driver for MongoDB
 and can therefore make the system scale even further~\cite{REACTIVEMONGO}.
 
-\par All files are also stored directly in MongoDB with the help of GridFS. GridFS chunks the files 
-according to the size limit of MongoDB objects, which is currently 4MB. The advantage of this is 
-that backups of the Perius system is easily done through a database backup, no separate files 
-needs to be backed up. Another advantage that is given by this is that you can retrieve specific 
-ranges of a file, although that advantage is not needed in the Perius implementation. For
-scalability this could be used to retrieve different parts of a file from different servers, 
-normal load balancing would probably work better in a system like Perius where no extremely large 
-files are expected to be stored. 
+\par All files are also stored directly in MongoDB with the help of GridFS. GridFS chunks the files
+according to the size limit of MongoDB objects, which is currently 4MB. The advantage of storing
+files directly in the database rather than in the filesystem is that backups of can be done through
+a database backup which will contain both the meta-data stored in MongoDB and the files which
+results in that no separate files needs to be backed up.  Another advantage is that you can retrieve
+specific ranges of a file, although that feature is not needed in the Perius implementation. For
+scalability this could be used to retrieve different parts of a file from different servers, normal
+load balancing would probably work better in a system like Perius where no extremely large files are
+expected to be stored. 
 
 \par The disadvantage of using the GridFS approach is that when using a non-distributed database 
 it is slower to read and write to the database than reading or writing directly to a filesystem. 
@@ -937,26 +946,26 @@ was done.
 \\
 \par As this work was not mainly about the system architecture, but rather about evaluating the
 effects of using Copy-on-Write, the decisions taken for the different technologies used were simply
-made from what the author was comfortable with and knew would have little impact on the evaluation. 
-With that said there are no comparisons of for example different databases, protocols or API
-solutions in this paper.
+made from what the author was comfortable with and expected would have little impact on the
+evaluation.  With that said there are no comparisons of for example different databases, protocols
+or API solutions in this paper.
 
 \par The long-term scaling was done by load testing the back-end with Wrk and Apache Bench. With
 the help of these tools, the computationally expensive operations could be found and it could be
 determined what the upper bound for how many active users the system could handle on a node with
 similar hardware specifications.
 
-\par A low timeout was set to make sure that the system could handle operations faster than they
+\par A low timeout threshold was used to make sure that the system could handle operations faster than they
 queued up. This was to be certain that the system could sustain the number of active users during a
-longer time frame without having a queue which grows beyond a manageable size.
+longer time frame without having a queue that could grow beyond a manageable size.
 
 \subsection{Copy-on-Write} \label{sec:copy-on-write}
 This section is about how Copy-on-Write was used in Perius and how its implementation of it differs
 from other systems that incorporate Copy-on-Write.
 
 \subsubsection{Snapshot Functionality}
-The Copy-on-Write concept is not only well-suited for consistency requirements, it is also works 
-well for creating snapshots.
+The Copy-on-Write concept is not only well-suited for consistency requirements, its basis also gives
+the possibility of creating snapshots.
 
 To efficiently create snapshots of a system, Copy-on-Write can be used to make it possible to create
 snapshots in O(1)\cite{BTRFS}. This is due to the fact that to create a snapshot in a system using
@@ -977,7 +986,7 @@ actually copy the whole subtree, this is due to the Copy-on-Write effect. As sev
 tree can refer to the same node each node keeps track of how many parents it has by a reference
 counter so that the node can be deallocated once the node does not have any parents any more. The
 reference counter is not stored in the nodes themselves but rather in a separate data structure so
-that a node's counter can be modified without modifying the node itself and therefore eludes the
+that a node's counter can be modified without modifying the node itself and therefore avoids the
 Copy-on-Write that would have to occur.
 
 \begin{figure}[H] 
@@ -991,16 +1000,22 @@ Copy-on-Write that would have to occur.
 \subsubsubsection{Mach kernel}
 In the mid 80's when the development of the Mach kernel started, there was problems with that
 physically copying memory was too slow. To minimise the copying of memory, Copy-on-Write was
-implemented. It was implemented so that virtual copy operations could be done and so that tasks
-could share read-write memory~\cite{MACH}.
+implemented to enable the use of virtual copy operations and to create the possibility of tasks
+sharing read-write memory~\cite{MACH}.
 
 \subsubsection{Perius}
-As the persistent storage, used in this implementation (Section~\ref{sec:tech}), does
-not implement transactions or locks a lot of different problems can occur when several clients are
-working on the same data set at the same time. Such problems could be race conditions or determining
-the happened-before relation~\cite{LAMPORT}. In this work the race condition problem is solved by 
-implementing Copy-on-Write on data with high consistency requirements. The happened-before relation
-is not fully solved, but suggestions of how to solve it is given in Section~\ref{sec:conflict_res}.
+As the persistent storage used in this implementation (Section~\ref{sec:tech}) does not implement
+transactions or locks, several different problems can occur when multiple clients are working on the
+same data set at the same time. Such problems could be race conditions or determining the
+happened-before relation~\cite{LAMPORT}. Race conditions are problematic due to that when several
+users or nodes modify data they can start in one state and expect the end state of the data to be
+the same as if they would have been alone modifying the data, but instead if another user modifies
+the data concurrently the changes that the first user made can be overwritten. In this work the
+race condition problem is solved by implementing Copy-on-Write on data with high consistency
+requirements. The happened-before relation is a problem of ordering events, if it is possible to
+know in which order concurrent events happened it is easier to know what the outcome of the events
+should be. The happened-before relation is not fully solved in Perius, but suggestions of how to
+solve it is given in Section~\ref{sec:conflict_res}.
 
 \begin{figure}[H] 
     \centering
@@ -1067,8 +1082,8 @@ different operations work, in the terms of efficiency.
 \subsubsection{Perius}
 Perius is the implementation that was done to solve the problem at hand at Uprise. Perius has a
 back-end written in Scala and a front-end written in Javascript (ES6), but they are both
-interchangeable. The back-end has a REST API running, which is how the front-end communicates with
-the back-end.
+independently replaceable. The back-end has a REST API running, which is how the front-end
+communicates with the back-end.
 
 \begin{figure}[H] 
     \centering{
@@ -1080,16 +1095,16 @@ the back-end.
 
 The service features a virtual file structure over the assets and metadata that have been stored,
 as can be seen in Figure~\ref{fig:frontend}. It also features snapshots, security management of
-whole containers as well as individual files, audit and auth logging, multiple separate project 
-and a design which allows for an interchangeable persistent storage.
+whole containers as well as individual files, audit and auth logging, multiple separate projects 
+and a design which allows for a replaceable persistent storage.
 
 The front-end is written in ES6 with React and Reflux, and the styling is done with the help of
 Bootstrap.
 
 \subsubsection{Entities of the Implementation}
 This section explains the different types of entities, and their interaction, that are handled by
-Perius. They are explained similarly to how they are explained for the model in
-Section~\ref{sec:elements}, but with more implementation specific details.
+Perius. They are explained similarly to the model in Section~\ref{sec:elements}, but with more
+implementation-specific details.
 
 \begin{description}
 \item[Content] \hfill \\
@@ -1139,7 +1154,7 @@ are only explained, and not proven to fulfil the complexities which are claimed.
 
 In the user interface the stored data is always represented and worked on as a tree, or a forest if
 all projects are considered. For a very small project that tree could look like the example in
-Figure~\ref{fig:project_tree}. This is however not what the actual storage of the data looks like.
+Figure~\ref{fig:project_tree}.
 
 \begin{figure}[H] 
     \centering
@@ -1162,32 +1177,49 @@ Figure~\ref{fig:project_tree}. This is however not what the actual storage of th
     \label{fig:storage}
 \end{figure}
 
-The actual storage of the data is represented by documents in a flat document storage, which is in
-this case MongoDB. A very simplified version of how the data is stored can be seen in
-Figure~\ref{fig:storage}, however in reality it is not quite so table-like. One important point that
-differs in the example and in the actual storage is that GUIDs are used for identifiers and not
-incremented numbers, as that would not work in distributed environments. 
+A very simplified version of how the data is stored can be seen in Figure~\ref{fig:storage}, however
+in reality it is not quite so table-like. The implementation is using GUIDs, instead of incremental
+numbers as shown in the figure, to work correctly in a distributed environments.
 
-The data is not stored as a tree (see Example~\ref{fig:storage}), but rather as separate documents 
-loosely referring to each other. How the different operations perform their actions and what 
-implications these actions have on the operations run-time complexities are not obvious and that 
-is what is discussed in this section.\\
+As seen above, the data is not stored as a tree (see Example~\ref{fig:storage}), but rather as
+separate documents loosely referring to each other. How the different operations perform their
+actions and what implications these actions have on the run-time complexities are not obvious and
+that is what is discussed in this section.\\
+
+\begin{figure}[H] 
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|r|c|l|}
+        \hline
+        \textbf{Variable} & \textbf{Explanation} \\
+        \hline
+        \textit{n} & All content+containers \\
+        \textit{c} & All containers \\
+        \textit{m} & All content \\
+        \textit{f} & All files \\
+        \textit{s} & Size of a file \\
+        \textit{k} & Chunk size \\
+        \hline
+    \end{tabular}
+    \renewcommand{\arraystretch}{1.0}
+    \caption{Variables used in run-time complexities}
+    \label{fig:runtime-variables}
+\end{figure}
+
 
 \par \textbf{GET single entity} \\
 When the back-end is handed a GET request it looks at what type of entity that is requested and
 returns the document with the correct ID from the corresponding collection. As the collections are
-hash indexed on ID this operation can be made in constant time, $O(1)$ and thus $\theta(1)$. \\
+hash indexed on ID this operation can be made in constant time, $O(1)$ and thus $\Theta(1)$. \\
 
 \par \textbf{GET project tree} \\
-When requesting a project the full project tree with all entities except files has to be built as
+When requesting a project the full project tree with all entities except files has to be built since
 the entities not are stored as a tree in MongoDB. The tree is built layer by layer by fetching
 content with the same parent ID, starting from the root of the project. Parent ID's are also indexed
 by a hash index which makes it possible to get all nodes with the same parent ID in constant time.
-This has to be done for every level with a different parent. The worst case for building the tree is
-thus $\theta(h)$ where h is the height of the tree and all of the subtrees only have one node each.
-The average case can not be calculated as the tree's balance is not determined by an algorithm but
-rather by a user, but from observation one could argue that the trees usually have several nodes for
-each parent node in the tree, which then would give a logarithmic average case, $\theta(log(n))$.\\
+This has to be done for every level with each parent. 
+Since all of the containers have to be processed when building the tree, the runtime complexity will
+thus be $\Theta(c)$/
 
 \par \textbf{POST/Create entity} \\
 Creating a new entity in the system is a constant time operation for containers and content as they
@@ -1195,23 +1227,22 @@ only have to be inserted as new documents in MongoDB, which is a $O(1)$
 operation~\cite{MONGOPERFORMANCE}. Even though the insertion itself has constant run-time the index
 needs to be updated or sometimes even rebuilt, which can slow down the time before the document is
 accessible in constant time. When inserting files they need to be chunked into pieces and inserted
-into GridFS, this results in $c/s$ insertions where $c$ is the size of the file and s is the chunk size.
-The insertion of files can then be regarded as $\theta(c)$ if the size of the file is regarded, but
-if $c$ is regarded as the number of files in the system the upper bound is constant as the insertion
+into GridFS, this results in $s/k$ insertions.
+The insertion of files can then be regarded as $\Theta(s)$ if the size of the file is regarded, but
+if $k$ is larger than the size of the files inserted, the upper bound is constant as the insertion
 for files is made in the same way as for other documents.\\
 
 \par \textbf{Snapshot creation} \\
 In the creation of a snapshot all metadata in the tree that the snapshot is taken of is duplicated,
-meanwhile the files remain the same, this results in $n$ insertions where $n$ is the number of
+meanwhile the files remain the same, this results in $t$ insertions where $t$ is the number of
 containers and content entities in the subtree. A snapshots insertion runtime is therefore
-always $\theta(n)$. \\
+$\Theta(n)$. \\
 
 \par \textbf{Delete entity} \\ 
 Deleting an entity is a constant time operation when that entity does not have any children. When
 the entity has children all those children has to be deleted too which will be done in the same
-manner as the project tree is built and therefore results in the same runtime, $\theta(n)$ as worst
-case and $\theta(log(n))$ as average (with the same argumentation as in \textit{GET project tree}),
-where $n$ is the number of entities in the subtree.\\
+manner as the project tree is built and therefore results in the same runtime, $\Theta(n)$ for
+containers and $\Theta(1)$ for content.
 
 \par \textbf{PUT/Update entity} \\
 The update operation in MongoDB completely replaces a document with another in regards to their
@@ -1239,8 +1270,8 @@ well the system can perform.
 
 \subsubsection{GET requests} \label{sec:GET_REQUESTS}
 To be able to determine what the bottleneck of the back-end is, three different types of \textit{GET
-requests} are performed. Most responses are JSON structures, except for the ones in
-Listing~\ref{OKREQUEST} and Listing~\ref{STATICREQUEST}, which can be seen in the Response data part
+requests} are performed. Most responses are JSON structures (except for the ones in
+Listing~\ref{OKREQUEST} and Listing~\ref{STATICREQUEST}) which can be seen in the Response data part
 of the listings.\\
 
 The typical requests performed with Wrk in this work will look similar to this:
@@ -1271,7 +1302,8 @@ Response data:
 \par
 The first request (Listing~\ref{OKREQUEST}) tries to maximise the number of requests that spray-can
 (HTTP server) can handle with the given specifications and therefore the server just returns 200
-(OK).
+(OK). 100 000 requests per second is well over what we need to serve and with a 1.22ms latency we
+know that without practically any payload the system is responding fast.
 
 \begin{custommargins}{0cm}{-2cm}
 \begin{minipage}{\linewidth-1cm}
@@ -1302,7 +1334,9 @@ Response data:
 The second request (Listing~\ref{DBREQUEST}) performs the simplest API call which involves getting
 all currently stored projects from the MongoDB instance. This request does not yield any extra
 computation in the back-end, apart from converting the MongoDB format to the API's JSON result
-format.
+format. From these requests it can clearly be deduced that the round trip time to fetch a document
+in the database is adding some latency, from the average of 1.22ms to 14.52ms with the database
+request.
 
 \newpage
 \begin{custommargins}{0cm}{-2cm}
@@ -1332,7 +1366,9 @@ As the second request (Listing~\ref{DBREQUEST}) involves the server answering wi
 is generated from the persistent storage, the third request (Listing~\ref{STATICREQUEST}) is simply
 the same amount of static payload as the second request but without involving any connections to
 MongoDB. This was done to be able to estimate what impact the round trip time to MongoDB and the
-conversions to the response format had on the throughput.
+conversions to the response format had on the throughput. This test still gave an average latency
+that was larger than for the smaller payload in Listing~\ref{OKREQUEST}, but still half of the
+latency compared to the request involving a MongoDB call.
 
 \begin{minipage}{\linewidth-1cm}
 \begin{lstlisting}[label=TREEREQUEST,caption=Result of project tree requests]
@@ -1383,13 +1419,13 @@ Response data:
 \end{minipage}
 
 The result in Listing~\ref{TREEREQUEST} shows an average of 40 requests/s, which means this is the
-real bottleneck in the application. There are two solutions to fix this bottleneck, as the project
+real bottleneck in the application. There are two solutions to fix this bottleneck. Since the project
 tree will not be modified nearly as often as it is requested, the first solution would be to cache
 the results of the tree requests and invalidate those caches when the tree is modified. The second
-solution would be to make a more computationally feasible way of building and fetching the whole
-tree from the database. This is left to implement if the need comes for it in the future. Even
+solution would be to make a more computationally feasible algorithm for building and fetching the whole
+tree from the database. This is will not be discussed further, but left as future work. Even
 though this massive bottleneck is present, it will not be a problem in a small scale production
-environment as the tree is fetched approximately once every 30 seconds by active users, which means
+environment where the tree is fetched approximately once every 30 seconds by active users, which means
 that the application still could support at least 1200 very active users.
 
 \begin{minipage}{\linewidth-1cm}
@@ -1413,8 +1449,8 @@ Same as in Listing 5
 \end{minipage}
 
 \par
-With caching turned on, on a single back-end, the application can theoretically support several 
-million active users which are not posting any content, this is simulated in 
+With caching turned on, on a single back-end, the application can theoretically support several
+million active users that are not posting any content, this is simulated in
 Listing~\ref{CACHEREQUEST}.
 
 \begin{minipage}{\linewidth-1cm}
@@ -1436,17 +1472,17 @@ Same as in Listing 5
 \end{lstlisting}
 \end{minipage}
 
-\par As a project tree is built by querying documents parent ID an optimisation that could be done was
-to create an index of the documents parent IDs. This drastically improved the size of the tree that
-the server was able to handle within the time-out, going from being able to handle 4000 documents in 
-one tree to at least 50000 documents, which the browser instead will have problems displaying, 
-represented in the UI, without lag.
+\par As a project tree is built by querying documents parent ID an optimisation that could be done
+is to create an index of the documents parent IDs. This drastically improved the size of the tree
+that the server was able to handle within the time-out, going from being able to handle 4000
+documents in one tree to at least 50000 documents, which the browser instead will have problems
+displaying, represented in the UI, without lag.
 
 \par After adding indices, the building of the project tree was able to finish 50 times faster and
 the server was able to serve 2100 requests/s, see Listing~\ref{INDEXREQUEST}. If using the same
 approximated average that was used in connection to Listing~\ref{TREEREQUEST} (30 requests/s), the
-maximum number of active clients that one node can handle will be >60000, without taking the web
-servers limits or content posting into consideration.
+maximum number of active clients that one node can handle will be >60000 clients at the same time, 
+without taking the web server limits or content posting into consideration.
 
 \subsubsection{POST requests}
 Two different POST requests will be tested, creation of containers and creation of content together
