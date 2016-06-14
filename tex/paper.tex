@@ -926,11 +926,7 @@ and can therefore make the system scale even further~\cite{REACTIVEMONGO}.
 according to the size limit of MongoDB objects, which is currently 4MB. The advantage of storing
 files directly in the database rather than in the filesystem is that backups of can be done through
 a database backup which will contain both the meta-data stored in MongoDB and the files which
-results in that no separate files needs to be backed up.  Another advantage is that you can retrieve
-specific ranges of a file, although that feature is not needed in the Perius implementation. For
-scalability this could be used to retrieve different parts of a file from different servers, normal
-load balancing would probably work better in a system like Perius where no extremely large files are
-expected to be stored. 
+results in that no separate files needs to be backed up. 
 
 \par The disadvantage of using the GridFS approach is that when using a non-distributed database 
 it is slower to read and write to the database than reading or writing directly to a filesystem. 
@@ -1515,13 +1511,12 @@ Response data:
 \end{minipage}
 
 As can be seen in Listing~\ref{CONTAINERPOSTREQUEST} the server can handle around 4000 container
-POST requests per second. The problem that this test resulted in was not the amount of containers
-that could be posted, but rather loading all those containers in the interface or API afterwards.
-When requesting the project that the containers were posted to the web server timed out the request,
-as it took too long for the back-end to build the project tree. In this work, the web server will
-not  
-be configured to accept longer data processing time, as trees as large as this for a single project
-will not be used in production.
+POST requests per second. A problem that was discovered during this test was not the amount of
+containers that could be posted, but rather loading all those containers in the interface or API
+afterwards. When requesting the project tree from the web server it timed out the request
+since it took too long for the back-end to build the tree. In this work the web server will not be
+configured to accept longer data processing time, due to the low probability of trees as large as
+this being used in production.
 
 \par
 File uploads was not supported by WRK and therefore Apache Bench was used. As there is a lot of
@@ -1537,23 +1532,21 @@ This section declares for the software security features that were used in Periu
 how the system and its assets are protected internally and externally.
 
 \subsubsection{Authentication}
-The authentication of users in the system is currently being handled by LDAP~\cite{LDAP}, as Perius 
-is mainly focussed at being deployed in internal networks which usually has an LDAP service enabled. 
-LDAP also makes it easier for the user to login as no separate account is needed for Perius and 
-thus the user can use the same account as for all the LDAP connected services on the internal 
-network.
+The authentication of users in the system is currently being handled by LDAP~\cite{LDAP}, since
+Perius mainly will be deployed in internal networks with an existing LDAP infrastructure.  LDAP also
+makes it easier for the user to login as no separate account is needed for Perius and thus the user
+can use the same account as for all the LDAP connected services on the internal network.
 
 \subsubsection{Audit logs}
-Audit logs are used in the system to keep track of which users that perform which actions. In the
-event that somebody, consciously or unconsciously, are leaking private CDN content from within the
-organisation using Perius. The audit trail can then be used to find which LDAP account that was
-responsible for the leak.
+Audit logs are used in the system to keep track of which users have perform which actions. In the
+event that somebody, consciously or unconsciously, are leaking private CDN content the audit trail
+can then be used to find which LDAP account that was responsible for the leak.
 
 \subsubsection{CDN Connections} \label{sec:cdn_connections}
 When uploading files to the CDN networks, their TLS/SSL protected APIs are used to ensure that no
 data leaks through packet sniffing etc. The files are grouped corresponding to their parent
 containers in Perius, which makes it possible to handle the security settings for all files in a
-group at once, without having to manually traverse through the tree in Perius.
+group at once, without having to manually traverse the tree in Perius.
 
 \subsubsubsection{Serving private content} \label{sec:private_content}
 There are three different ways, that this implementation make use of, to make sure that the CDNs
@@ -1581,8 +1574,7 @@ are to be used when the URL should remain static even though the policies change
 The IP range restriction is presented as a third option in Perius, even though it in fact is just a
 part of a Signed Cookie or URL policy. The IP range restriction makes it possible to restrict which
 IP addresses that can access the asset, this option can be fitting when for example an office or
-companies internet access is based on a set of public static IP addresses and thus restricts the
-content from ever being accessed outside of that controlled network.
+a restricted groups internet access is based on a set of public static IP addresses.
 
 \subsection{Findings}
 This section presents the relevant findings derived from the implementation of Perius and the 
@@ -1590,7 +1582,7 @@ testing of it.
 
 \subsubsection{Security}
 The greatest security improvement of Perius compared to its predecessor Battlebinary is not the
-security of the system itself but rather how Perius handles the contents security settings on the
+security of the system itself but rather how Perius handles the content security settings on the
 CDN providers. Perius uses several of the security features for private content that the CDN
 providers offer (see Section~\ref{sec:private_content}) to make sure that the content only is
 accessible from where it should be. In Perius it is possible to have three different modes for a CDN
@@ -1606,12 +1598,12 @@ Perius uses MongoDB as its persistent storage and all computationally expensive 
 doing calls to it. Scala currently has two popular drivers for interaction with MongoDB, namely
 Casbah and ReactiveMongo.
 
-When using the ReactiveMongo driver~\cite{REACTIVEMONGO}, which is asynchronous and non-blocking, 
-the application has no limits of how much load and users it can handle as the hardware and nodes 
-can be scaled up linearly when needed. With Cashbah~\cite{CASBAH}, which is used with the current 
-implementation, it is harder to scale to the enormous amounts of load which ReactiveMongo can 
-support as Casbah is synchronous and has blocking IO. For this work the kind of scalability which 
-is offered by ReactiveMongo is not needed as the load will not reach the peak, as discussed in 
+When using the ReactiveMongo driver~\cite{REACTIVEMONGO}, which is asynchronous and non-blocking,
+the application has no limits of how much load or how many users it can handle as the hardware and
+nodes can be scaled up linearly when needed. With Cashbah~\cite{CASBAH}, which is used in the
+current implementation, it is harder to scale to the enormous amounts of load that ReactiveMongo
+can support as Casbah is synchronous and has blocking IO. For this work the kind of scalability
+which is offered by ReactiveMongo is not needed as the load will not reach the peak, as discussed in 
 Section~\ref{sec:GET_REQUESTS}, for what Casbah can handle on a single server. 
 
 \subsubsection{Load Testing}
@@ -1622,7 +1614,7 @@ comparing that to the request which involved the server responding with a small 
 \textasciitilde90K requests/s. However when comparing that to the requests that needed database
 access it is obvious that the HTTP server can handle all the load that it needs to, as
 Listing~\ref{DBREQUEST} shows that to fetch all documents in a collection (in this case only one) is
-dramatically slower, the throughput was only \textasciitilde7000 requests/s. 
+dramatically slower, the throughput was only $\approx$7000 requests/s.
 
 \par These are very simple requests, to evaluate how much load the application can handle in its
 current state, a more complex but common request was analysed. The most complicated and still
@@ -1646,22 +1638,21 @@ This chapter contains informal discussions about topics that were not covered by
 report but that are still significant enough to mention.
 
 \subsection{Persistent Storage}
-More research could have been done in the choosing of persistent storage, as mentioned in 
-\textit{``NoSQL: Moving from MapReduce Batch Jobs to Event-Driven Data Collection''}
-~\cite{KLINGSBO} many applications that choose NoSQL databases as their persistent storage 
-actually do not need it. This is most likely true for Perius too, it would have been efficient 
-enough generating the project trees from an indexed SQL database with foreign keys. On the 
-other hand it was quite nice having the BSON documents for insertion as they were so similar 
-to the accepted JSON format from the REST service. As Perius most common operations involve 
-modifying project trees, a graph database should have been researched too.
+More research could have been done in the choosing of persistent storage, as mentioned in many
+applications that choose NoSQL databases as their persistent storage actually do not need
+it~\cite{KLINGSBO}. This is most likely true for Perius too: it would have been efficient enough
+generating the project trees from an indexed SQL database with foreign keys. On the other hand it
+was quite nice having the BSON documents for insertion as they were so similar to the accepted JSON
+format from the REST service. As Perius most common operations involve modifying project trees, a
+graph database should have been researched too.
 
 \subsection{Copy-on-Write's effect on Scalability}
-As no comparison with solutions that were not Copy-on-Write based were made, no scientific
+Since no comparison with solutions that were not Copy-on-Write based were made, no scientific
 conclusions can be drawn from what its effect was on the scalability of the system. However some
 intuitively drawn conclusions can be suggested. If comparing to a system which uses a SQL database
-the Copy-on-write system would have an easier time to scale on the width as no global locks or
-transactions has to be used, which with high probability would slow down the system, especially when
-widely distributed.
+the Copy-on-write system would have an easier time to scale since no global locks or transactions
+has to be used, which with high probability would slow down the system, especially when widely
+distributed.
 The gain of having the locks or transactions would be that the system would
 always be in a fully consistent state. The loss would be that all of the database nodes would need
 to constantly have to, in some sense, be fully aware of the state of the other nodes.
@@ -1675,11 +1666,17 @@ more efficient than the current solution, with MongoDB as a persistent storage a
 handling in the back-end code, as a lot of optimisations could be done in the database engine
 instead.
 
+\subsection{Scalability}
+Since GridFS was used to store the files an unexplored option for making it easier to scale is to
+use GridFS feature of retrieving specific ranges of a file. For scalability this could be used to
+retrieve different parts of a file from different servers, but normal load balancing would probably
+work better in a system like Perius where no extremely large files are expected to be stored. 
+
 \subsection{Branching}
-Branching was also implemented in Perius, but to not make the report too wide it was not included.
+Branching was also implemented in Perius, but to not make the report too broad it was not included.
 The branching worked by the user selecting a container that the branch should be based on and a
-container in which the branch should be places. The user could then choose which containers and
-content that it wanted to update with the origin source of and which objects that should be deep
+container in which the branch should be placed. The user could then choose which containers and
+content that it wanted to update with the origin and which objects that should be deep
 copied to the new branch.
 
 \subsection{GET/POST Estimation}
@@ -1749,7 +1746,7 @@ in the model, the implementation will need to be extended in the future.
 Currently the implementation fetches the full project tree every time a change is made. This results
 in increased latency, bandwidth usage and server load. We propose a refactorization of the front-end
 where it updates the state according to the REST response of each modification to the project tree
-instead of re-fetching it.
+instead of fetching the whole tree again.
 
 \newpage
 \bibliographystyle{ieeetr}
